@@ -1,0 +1,1217 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#dff2ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Koala-Detektei">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Lern-Detektivspiel mit Koala: Zahlen bis 100, Plus und Minus, Buchstaben.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Koala-Detektei</title>
+<style>
+html{padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+body{margin:0}
+/* Layout: ein Vollbild-Spiel, oben Leiste, Mitte Szene, unten große Antwortfelder. Farbwelt: Hellblau, Türkis, Mint, zartes Rosa, Regenbogen-Akzente. */
+:root{
+  --ink:#1d3a57; --ink2:#52708c; --sky:#e3f5ff; --mint:#c9f2e3; --mint-d:#1fa88a;
+  --turq:#2bb5b0; --blue:#4a90d9; --rose:#ffd3e2; --rose-d:#e0689a; --sun:#ffe28a; --lav:#e3d9ff;
+  --card:#ffffff; --line:#b7e0ec; --shadow:0 6px 0 rgba(74,144,217,.22);
+  --f-disp:ui-rounded,'SF Pro Rounded','Arial Rounded MT Bold','Avenir Next Rounded',system-ui,sans-serif;
+  --f-kid:ui-rounded,'SF Pro Rounded','Arial Rounded MT Bold','Chalkboard SE',system-ui,sans-serif;
+  --f-ui:ui-rounded,system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{background:linear-gradient(#dcf2ff 0%,#e6fbf4 62%,#fff0f6 100%);color:var(--ink);font-family:var(--f-ui);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+#bg svg.rb{position:absolute;left:50%;top:-2vmin;width:120vmax;max-width:none;transform:translateX(-50%);opacity:.55}
+#bg svg.cl{position:absolute;height:auto;opacity:.92;filter:drop-shadow(0 6px 8px rgba(120,170,220,.25));animation:drift 24s ease-in-out infinite alternate}
+#bg svg.cl.a{width:26vmin;left:4%;top:20%}
+#bg svg.cl.b{width:34vmin;right:5%;top:11%;animation-duration:31s;animation-delay:-9s}
+#bg svg.cl.c{width:20vmin;left:44%;top:40%;opacity:.7;animation-duration:38s;animation-delay:-16s}
+@keyframes drift{from{transform:translateX(-4vmin)}to{transform:translateX(5vmin)}}
+#bg .hills{position:absolute;left:0;right:0;bottom:0;width:100%;height:22vmin}
+#app{position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding-inline:max(16px,3vmin);padding-block:max(10px,1.5vmin);max-width:1200px;margin-inline:auto}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px}
+.ico{width:64px;height:64px;border-radius:50%;background:var(--card);box-shadow:var(--shadow);font-size:30px;display:grid;place-items:center;border:3px solid var(--line)}
+.rgt{display:flex;gap:12px}
+.ico.voice{flex-direction:column;gap:0;line-height:1;background:var(--mint);border-color:var(--mint-d)}
+.ico.voice{width:76px;border-radius:32px;align-content:center;row-gap:2px}
+.ico.voice .vi{font-size:24px}
+.ico.voice small{font-size:12px;font-weight:800;color:var(--ink2)}
+.ico.voice.off{background:#eef2f5;border-color:#b9c6d1;filter:grayscale(.6)}
+[hidden]{display:none!important}
+.ico.small{width:48px;height:48px;font-size:20px;opacity:.7}
+.ico:active,.btn:active,.tile:active,.case:active{transform:translateY(3px);box-shadow:none}
+.pips{display:flex;gap:10px}
+.pip{width:clamp(22px,4vmin,34px);height:clamp(22px,4vmin,34px);border-radius:50%;background:#fff;border:3px solid var(--line);display:grid;place-items:center;font-size:clamp(12px,2.4vmin,20px)}
+.pip.on{background:var(--sun);border-color:#f2c94c}
+.pip.now{border-color:var(--turq);transform:scale(1.2)}
+.btn{background:linear-gradient(#5fd0c6,var(--turq));color:#fff;font-family:var(--f-disp);font-weight:800;font-size:clamp(24px,4.5vmin,40px);padding:.35em 1.3em;border-radius:999px;box-shadow:0 6px 0 #1a8a86;min-height:72px}
+.btn.rose{background:linear-gradient(#ff9fc3,var(--rose-d));box-shadow:0 6px 0 #b04671}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:var(--shadow);border:3px solid var(--line);font-weight:600}
+.btn.sm{font-size:20px;min-height:52px;padding:.25em 1em}
+.screen{flex:1;display:flex;flex-direction:column;min-height:0}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.2vmin;text-align:center;min-height:0}
+svg.koala{width:clamp(130px,30vmin,300px);height:auto;filter:drop-shadow(0 8px 0 rgba(74,144,217,.18))}
+svg.koala.sm{width:clamp(86px,15vmin,150px)}
+svg.koala .eye{transform-origin:center;transform-box:fill-box;animation:blink 5s infinite}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.bob{animation:bob 3s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-1.4vmin)}}
+.bubble{background:#fff;border:4px solid var(--line);border-radius:32px;padding:.6em 1em;font-family:var(--f-kid);font-weight:700;font-size:clamp(22px,4.2vmin,42px);line-height:1.3;max-width:min(92vw,900px);box-shadow:var(--shadow)}
+.bubble .pic{display:block;font-size:clamp(70px,16vmin,160px);line-height:1.1;margin-bottom:.1em}
+.stage{display:flex;align-items:center;justify-content:center;gap:2vmin;flex-wrap:wrap}
+.homehead{padding-block:0 1.2vmin}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:6px 6px 24px;-webkit-overflow-scrolling:touch}
+.cases{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(150px,24vmin,240px),1fr));gap:2vmin;width:100%}
+.case{position:relative}
+.case .num{position:absolute;top:8px;left:10px;min-width:1.7em;height:1.7em;border-radius:50%;background:var(--sun);border:3px solid #f2c94c;font-family:var(--f-kid);font-weight:700;font-size:clamp(16px,3vmin,26px);display:grid;place-items:center}
+.case.al{background:linear-gradient(#fff,#fff3d6)}
+.case{background:#fff;border:4px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:1.6vmin 1vmin;display:flex;flex-direction:column;align-items:center;gap:.6vmin;min-width:0}
+.case .cpic{font-size:clamp(54px,13vmin,120px);line-height:1.1}
+.case .ctitle{overflow-wrap:anywhere;hyphens:auto;font-family:var(--f-disp);font-weight:800;font-size:clamp(15px,2.6vmin,26px);line-height:1.15;color:var(--ink)}
+.case .cst{font-size:clamp(16px,2.8vmin,26px);min-height:1.3em;letter-spacing:2px}
+.case.c1{background:linear-gradient(#fff,#ffeaf2)}.case.c2{background:linear-gradient(#fff,#dcf8ec)}.case.c3{background:linear-gradient(#fff,#e7e0ff)}.case.tr{background:linear-gradient(#fff,#dff2ff)}
+.homebar{display:flex;justify-content:center;gap:2vmin;margin-top:2vmin}
+/* Rätsel */
+.riddle{flex:1;display:flex;flex-direction:column;gap:1.6vmin;min-height:0}
+.qrow{display:flex;align-items:center;gap:2vmin;justify-content:center;flex-wrap:nowrap}
+.prompt{font-family:var(--f-kid);font-weight:700;font-size:clamp(24px,5.4vmin,54px);line-height:1.25;max-width:min(100%,900px);background:#fff;border:4px solid var(--line);border-radius:30px;padding:.25em .7em;box-shadow:var(--shadow);text-align:center}
+.prompt b{color:var(--rose-d);font-size:1.25em}
+.rbody{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;flex-wrap:wrap;gap:3vmin}
+.eq{display:flex;align-items:center;justify-content:center;gap:2.5vmin;flex-wrap:wrap}
+.eqd{font-family:var(--f-kid);font-weight:700;font-size:clamp(50px,14vmin,130px);display:flex;align-items:center;gap:2vmin;color:var(--ink)}
+.eqd .q{color:var(--rose-d)}
+.grp{display:flex;flex-wrap:wrap;justify-content:center;align-content:center;gap:.6vmin;max-width:min(38vw,50vmin);background:rgba(255,255,255,.7);border:3px dashed var(--line);border-radius:26px;padding:1.2vmin;min-width:12vmin}
+.grp.big{max-width:min(70vw,70vmin)}
+.it{position:relative;font-size:clamp(28px,7.5vmin,74px);line-height:1.05;transition:transform .2s,opacity .3s}
+.it.gone{opacity:.25;filter:grayscale(1)}
+.it.gone::after{content:'✖';position:absolute;inset:0;display:grid;place-items:center;color:var(--rose-d);font-size:.9em}
+.it.n::before{content:attr(data-n);position:absolute;top:-.3em;right:-.1em;background:var(--rose-d);color:#fff;font-family:var(--f-kid);font-weight:700;font-size:.42em;min-width:1.5em;height:1.5em;border-radius:1em;display:grid;place-items:center;z-index:2}
+.seq{display:flex;gap:2vmin}
+.seq .sq{width:clamp(64px,16vmin,150px);height:clamp(64px,16vmin,150px);border-radius:26px;background:#fff;border:4px solid var(--line);display:grid;place-items:center;font-family:var(--f-kid);font-weight:700;font-size:clamp(40px,10vmin,96px)}
+.seq .sq.q{background:var(--rose);border-color:var(--rose-d);color:var(--rose-d)}
+.bigpic{font-size:clamp(100px,30vmin,300px);line-height:1}
+.wordhint{font-family:var(--f-kid);font-weight:700;font-size:clamp(40px,10vmin,90px);display:flex;align-items:center;gap:2vmin}
+.wordhint em{font-style:normal;color:var(--rose-d);font-size:1.3em}
+.opts{display:flex;gap:2.4vmin;justify-content:center;flex-wrap:wrap;padding-bottom:1vmin}
+.tile{min-width:clamp(88px,21vmin,190px);height:clamp(88px,21vmin,190px);padding:0 1vmin;background:#fff;border:5px solid var(--turq);border-radius:32px;box-shadow:0 8px 0 rgba(43,181,176,.35);font-family:var(--f-kid);font-weight:700;font-size:clamp(44px,12vmin,110px);color:var(--ink);display:grid;place-items:center;transition:transform .15s}
+.tile.two{height:auto;min-height:clamp(120px,32vmin,300px);min-width:clamp(140px,40vmin,420px)}
+.tile:disabled{opacity:.4}
+.tile.ok{background:var(--mint);border-color:var(--mint-d);animation:pop .5s}
+.tile.bad{background:var(--rose);border-color:var(--rose-d);animation:shake .4s}
+.tile.glow{animation:glow 1s infinite}
+@keyframes pop{40%{transform:scale(1.15)}}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes glow{50%{box-shadow:0 0 0 12px rgba(255,226,138,.9)}}
+.fgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.6vmin}
+.fgrid .tile{min-width:0;width:clamp(70px,17vmin,150px);height:clamp(60px,12.5vmin,120px);font-size:clamp(36px,9vmin,80px)}
+.tile.found{background:var(--mint);border-color:var(--mint-d)}
+.target{font-family:var(--f-kid);font-weight:700;font-size:clamp(28px,6vmin,56px);background:var(--rose);border:4px solid var(--rose-d);border-radius:24px;padding:.1em .6em;color:var(--rose-d)}
+/* Hinweise / Verdächtige */
+.bubble.cbub .pic{font-size:clamp(50px,11vmin,110px)}
+.deduce{display:flex;align-items:center;gap:1.4vmin;background:var(--mint);border:4px solid var(--mint-d);border-radius:28px;padding:.5em .9em;font-family:var(--f-kid);font-weight:700;font-size:clamp(20px,3.8vmin,38px);line-height:1.3;max-width:min(92vw,900px);box-shadow:var(--shadow)}
+.deduce .dq{font-size:1.6em}
+.grp.five{display:grid;grid-template-columns:repeat(5,auto)}
+.grp.sm .it{font-size:clamp(20px,4.6vmin,46px)}
+.grp.big.sm .it{font-size:clamp(24px,6vmin,56px)}
+.pool{display:flex;flex-wrap:wrap;gap:1vmin;justify-content:center;align-content:center;max-width:min(44vw,60vmin)}
+.bigeq{flex-wrap:nowrap}
+.bigeq .pool{max-width:38vw}
+.eqd.sm{font-size:clamp(34px,8.5vmin,90px)}
+@media (orientation:portrait){.bigeq{flex-wrap:wrap}.bigeq .pool{max-width:86vw}}
+.eq .dt{font-size:clamp(11px,2.2vmin,24px)}
+.pool.big{max-width:min(92vw,112vmin);gap:1.4vmin}
+.tb{display:grid;grid-template-columns:repeat(5,auto);background:rgba(255,255,255,.8);border:3px solid var(--turq);border-radius:14px;padding:.4vmin .6vmin;transition:background .3s,transform .3s}
+.tb.un{border-style:dashed;border-color:var(--rose-d)}
+.tb.hl{background:var(--mint);transform:scale(1.06)}
+.dt{font-size:clamp(13px,3vmin,30px);line-height:1.1}
+.pool.big .dt{font-size:clamp(14px,3.6vmin,36px)}
+.seq.mu{flex-wrap:wrap;justify-content:center;max-width:94vw}
+.seq.mu .sq{width:clamp(44px,11vmin,110px);height:clamp(44px,11vmin,110px);font-size:clamp(26px,7vmin,70px);border-radius:20px}
+.seq .sq.hl,.tb.hl{transform:scale(1.15)}
+.seq.w3 .sq{font-size:clamp(28px,7vmin,66px)}
+.clues{display:flex;gap:1.6vmin;justify-content:center;flex-wrap:wrap}
+.clue{width:clamp(56px,12vmin,110px);height:clamp(56px,12vmin,110px);border-radius:24px;background:#fff;border:4px solid var(--line);display:grid;place-items:center;font-size:clamp(30px,7vmin,64px);box-shadow:var(--shadow)}
+.clue.empty{background:rgba(255,255,255,.4);border-style:dashed;box-shadow:none}
+.suspects{display:flex;gap:2.4vmin;justify-content:center;flex-wrap:wrap}
+.susp{background:#fff;border:5px solid var(--line);border-radius:36px;box-shadow:var(--shadow);padding:1.2vmin 3vmin;font-size:clamp(70px,18vmin,180px);line-height:1.15}
+.susp.bad{background:var(--rose);border-color:var(--rose-d);animation:shake .4s}
+.susp.ok{background:var(--mint);border-color:var(--mint-d);animation:pop .6s}
+.stickers{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(74px,15vmin,130px),1fr));gap:1.6vmin;width:100%;overflow:auto;padding:6px}
+.stk{aspect-ratio:1;background:#fff;border:4px solid var(--line);border-radius:28px;display:grid;place-items:center;font-size:clamp(40px,9vmin,80px);box-shadow:var(--shadow)}
+.stk.lock{filter:grayscale(1) brightness(1.35) contrast(.5);opacity:.5}
+.lgrow{display:flex;gap:2vmin;flex-wrap:wrap;justify-content:center}
+.wcard{background:#fff;border:4px solid var(--line);border-radius:28px;padding:1vmin 2vmin;font-family:var(--f-kid);font-weight:700;font-size:clamp(22px,4vmin,40px);display:flex;flex-direction:column;align-items:center;box-shadow:var(--shadow)}
+.wcard span{font-size:clamp(50px,11vmin,110px);line-height:1.1}
+.wcard b{color:var(--rose-d)}
+.bigL{font-family:var(--f-kid);font-weight:700;font-size:clamp(120px,30vmin,300px);line-height:1;background:linear-gradient(90deg,#ff7aa8,#ffb45e,#7bd88f,#4fc3f7,#9b8cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+#confetti{position:fixed;inset:0;z-index:5;pointer-events:none}
+/* Elternbereich */
+.par{background:rgba(255,255,255,.92);border-radius:28px;padding:18px;overflow:auto;flex:1;min-height:0;font-size:18px;line-height:1.45;-webkit-user-select:text;user-select:text}
+.par h2{font-family:var(--f-disp);margin:.2em 0 .3em;font-size:26px}
+.par h3{font-family:var(--f-disp);margin:1em 0 .3em;font-size:20px}
+.par p{margin:.4em 0;color:var(--ink2)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tab{padding:10px 16px;border-radius:999px;background:#fff;border:3px solid var(--line);font-weight:800;min-height:48px}
+.tab.on{background:var(--turq);border-color:var(--turq);color:#fff}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:10px}
+.lt{border-radius:18px;border:3px solid var(--line);background:#f1f5f8;min-height:74px;font-family:var(--f-kid);font-weight:700;font-size:32px;position:relative;color:#8aa0b3}
+.lt.on{background:var(--mint);border-color:var(--mint-d);color:var(--ink)}
+.lt small{position:absolute;left:8px;right:8px;bottom:6px;height:5px;border-radius:3px;background:#dbe6ee;overflow:hidden;display:block}
+.lt small i{display:block;height:100%;background:var(--mint-d)}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #e3edf3}
+.row .lbl{flex:1;min-width:160px;font-weight:700}
+.row .st{font-size:14px;color:var(--ink2);min-width:110px}
+.mini{min-width:48px;min-height:48px;border-radius:14px;background:#fff;border:3px solid var(--line);font-size:20px}
+.mini.rec{background:var(--rose);border-color:var(--rose-d)}
+.bar{height:14px;border-radius:8px;background:#e3edf3;overflow:hidden;min-width:120px;flex:1}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#5fd0c6,#4a90d9)}
+.par input[type=text],.par textarea,.par select{font:inherit;border:3px solid var(--line);border-radius:14px;padding:10px;width:100%;background:#fff;color:var(--ink)}
+.par textarea{min-height:120px;font-size:13px;word-break:break-all}
+.note{background:var(--sky);border-radius:16px;padding:10px 14px;margin:8px 0;font-size:16px}
+.warn{background:#fff3d6}
+.keys{display:grid;grid-template-columns:repeat(3,clamp(70px,14vmin,110px));gap:10px;justify-content:center}
+.keys .tile{min-width:0;width:100%;height:clamp(60px,12vmin,96px);font-size:clamp(30px,6vmin,52px)}
+@media (max-width:520px){.ico{width:52px;height:52px;font-size:24px}.ico.voice{width:60px;border-radius:26px}.ico.voice .vi{font-size:20px}.rgt{gap:6px}.top{gap:6px}.pips{gap:5px}.pip{width:20px;height:20px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="bg" aria-hidden="true">
+  <svg class="rb" viewBox="0 0 400 200" preserveAspectRatio="xMidYMin meet"><g fill="none" stroke-width="12">
+    <path d="M10 200A190 190 0 0 1 390 200" stroke="#ffb3c7"/><path d="M22 200A178 178 0 0 1 378 200" stroke="#ffd9a8"/><path d="M34 200A166 166 0 0 1 366 200" stroke="#fff1a8"/><path d="M46 200A154 154 0 0 1 354 200" stroke="#bdf0c8"/><path d="M58 200A142 142 0 0 1 342 200" stroke="#b5e4ff"/><path d="M70 200A130 130 0 0 1 330 200" stroke="#d3c9ff"/></g></svg>
+  <svg class="cl a" viewBox="0 0 200 100"><g fill="#fff"><circle cx="52" cy="62" r="28"/><circle cx="92" cy="46" r="36"/><circle cx="136" cy="58" r="30"/><circle cx="166" cy="70" r="20"/><rect x="30" y="62" width="156" height="28" rx="14"/></g><g fill="#eaf5ff" opacity=".7"><ellipse cx="100" cy="86" rx="70" ry="6"/></g></svg><svg class="cl b" viewBox="0 0 200 100"><g fill="#fff"><circle cx="52" cy="62" r="28"/><circle cx="92" cy="46" r="36"/><circle cx="136" cy="58" r="30"/><circle cx="166" cy="70" r="20"/><rect x="30" y="62" width="156" height="28" rx="14"/></g><g fill="#eaf5ff" opacity=".7"><ellipse cx="100" cy="86" rx="70" ry="6"/></g></svg><svg class="cl c" viewBox="0 0 200 100"><g fill="#fff"><circle cx="52" cy="62" r="28"/><circle cx="92" cy="46" r="36"/><circle cx="136" cy="58" r="30"/><circle cx="166" cy="70" r="20"/><rect x="30" y="62" width="156" height="28" rx="14"/></g><g fill="#eaf5ff" opacity=".7"><ellipse cx="100" cy="86" rx="70" ry="6"/></g></svg>
+  <svg class="hills" viewBox="0 0 400 60" preserveAspectRatio="none"><path d="M0 60V28Q60 6 130 24T270 22T400 26V60Z" fill="#bff0dd"/><path d="M0 60V40Q90 20 190 38T400 34V60Z" fill="#a8e6d4"/></svg>
+</div>
+<div id="app"></div>
+<canvas id="confetti"></canvas>
+<script>
+'use strict';
+/* ================= Hilfen ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+
+/* ================= Inhalte ================= */
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const ORDER = 'ILOAMUERSTNDBHKFPGWZJVCQXY'.split('');   // Vorschlag für die Freischaltung
+const LSAY = { A: 'A', B: 'Be', C: 'Ze', D: 'De', E: 'E', F: 'Eff', G: 'Ge', H: 'Ha', I: 'I', J: 'Jott', K: 'Ka', L: 'Ell', M: 'Emm', N: 'Enn', O: 'O', P: 'Pe', Q: 'Ku', R: 'Err', S: 'Ess', T: 'Te', U: 'U', V: 'Fau', W: 'We', X: 'Iks', Y: 'Üpsilon', Z: 'Zett' };
+const LOOK = ['IL', 'OQ', 'AH', 'MN', 'WV', 'EF', 'PR', 'BD', 'CG', 'UV', 'ZN', 'XK', 'YT', 'JI', 'SZ'];
+const WORDS = {
+  A: [['Affe', '🐒'], ['Apfel', '🍎'], ['Ameise', '🐜']], B: [['Bär', '🐻'], ['Banane', '🍌'], ['Baum', '🌳']],
+  D: [['Dino', '🦕'], ['Delfin', '🐬'], ['Drache', '🐉']], E: [['Elefant', '🐘'], ['Ente', '🦆']],
+  F: [['Fisch', '🐟'], ['Fuchs', '🦊'], ['Frosch', '🐸']], G: [['Giraffe', '🦒'], ['Gitarre', '🎸'], ['Geist', '👻']],
+  H: [['Hase', '🐰'], ['Haus', '🏠'], ['Hund', '🐶']], I: [['Igel', '🦔'], ['Insel', '🏝️']],
+  J: [['Junge', '👦'], ['Jacke', '🧥']], K: [['Koala', '🐨'], ['Katze', '🐱'], ['Kuh', '🐄']],
+  L: [['Löwe', '🦁'], ['Löffel', '🥄'], ['Lupe', '🔍']], M: [['Maus', '🐭'], ['Mond', '🌙'], ['Muschel', '🐚']],
+  N: [['Nase', '👃'], ['Nashorn', '🦏'], ['Nudeln', '🍜']], O: [['Ohr', '👂'], ['Orange', '🍊'], ['Oktopus', '🐙']],
+  P: [['Pilz', '🍄'], ['Pinguin', '🐧'], ['Pizza', '🍕']], R: [['Rakete', '🚀'], ['Rose', '🌹'], ['Regenbogen', '🌈']],
+  S: [['Sonne', '☀️'], ['Socke', '🧦'], ['Salat', '🥗']], T: [['Tiger', '🐯'], ['Tasse', '☕'], ['Tomate', '🍅']],
+  U: [['Uhr', '🕐'], ['Ufo', '🛸']],
+  W: [['Wal', '🐳'], ['Wolke', '☁️'], ['Wassermelone', '🍉']], Z: [['Zebra', '🦓'], ['Zahn', '🦷'], ['Zitrone', '🍋']]
+};
+const ONES = ['null', 'eins', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn', 'elf', 'zwölf', 'dreizehn', 'vierzehn', 'fünfzehn', 'sechzehn', 'siebzehn', 'achtzehn', 'neunzehn'];
+const TENSW = ['', '', 'zwanzig', 'dreißig', 'vierzig', 'fünfzig', 'sechzig', 'siebzig', 'achtzig', 'neunzig'];
+function numWord(n) {
+  if (n < 20) return ONES[n];
+  if (n === 100) return 'hundert';
+  const t = Math.floor(n / 10), o = n % 10;
+  return o ? (o === 1 ? 'ein' : ONES[o]) + 'und' + TENSW[t] : TENSW[t];
+}
+const NUMW = Array.from({ length: 101 }, (_, n) => numWord(n));
+const PHR = {
+  wieviele: 'Zähle mal: Wie viele siehst du?', tippe_zahl: 'Tippe auf die Zahl', tippe_buchstabe: 'Tippe auf den Buchstaben', plus: 'plus', minus: 'minus',
+  wie_viel_ist: 'Wie viel ist', womit: 'Mit welchem Buchstaben fängt', an: 'an?', finde: 'Finde alle', finde_ende: 'und tippe darauf.',
+  fehlt: 'Welche Zahl fehlt in der Reihe?', mehr: 'Wo sind mehr Bilder? Tippe darauf.', weniger: 'Wo sind weniger Bilder? Tippe darauf.', kleiner: 'Welche Zahl ist kleiner? Tippe darauf.',
+  nach: 'Welche Zahl kommt direkt nach', vor: 'Welche Zahl kommt direkt vor', zwischen: 'Welche Zahl steht zwischen', und: 'und',
+  zerl1: 'Was muss man zu', zerl2: 'dazutun, damit es', zerl3: 'ergibt?',
+  muster: 'Wie geht das Muster weiter? Tippe auf das richtige Bild.', muster_hint: 'Schau genau hin: Die Bilder wiederholen sich immer wieder.',
+  anders: 'Welches Bild ist anders? Tippe darauf.', anders_hint: 'Fast alle Bilder sind gleich. Nur eins ist anders. Findest du es?',
+  bild1: 'Welches Bild fängt mit dem Buchstaben', bild2: 'an? Tippe darauf.', silben1: 'Wie viele Silben hat das Wort', klatsch: 'Klatsche mit: Das Wort hat',
+ groesser: 'Welche Zahl ist größer? Tippe darauf.', nochmal: 'Nicht ganz. Schau noch einmal genau hin und versuche es nochmal!',
+  das_ist: 'Das ist das', wie: 'wie', hallo: 'Hallo', hallo2: 'Welchen Fall wollen wir heute lösen?',
+  wer: 'Schau dir alle Hinweise an. Wer war es? Tippe auf das richtige Tier.', hinweis: 'Du hast einen Hinweis gefunden!', neu: 'Schau mal, ein neuer Buchstabe!',
+  faengt_mit: 'fängt an mit dem', sticker: 'Du hast einen neuen Sticker bekommen!', geschafft: 'Geschafft! Du hast den Fall gelöst!', runde: 'Geschafft! Die Übungsrunde ist zu Ende!',
+  richtig: 'Die richtige Antwort ist', praise0: 'Super!', praise1: 'Toll gemacht!', praise2: 'Prima!', praise3: 'Genau richtig!', praise4: 'Klasse!'
+};
+const REG = { nachbar: 'Vorgänger und Nachfolger', zerleg: 'Zahlen ergänzen', muster: 'Muster fortsetzen', anders: 'Was ist anders?', form: 'Formen erkennen', bildwahl: 'Bild zum Anfangsbuchstaben', silben: 'Silben zählen', count: 'Mengen zählen', numrec: 'Zahlen erkennen', plus: 'Plus', minus: 'Minus', missing: 'Fehlende Zahl', more: 'Mengen vergleichen', ltap: 'Buchstaben erkennen', anlaut: 'Anlaute (Anfangsbuchstabe)', find: 'Buchstaben finden' };
+const ITEMS = ['🦕', '🐨', '🍃', '⭐', '🐟', '🌸', '🦋', '🍎', '🐢', '🍓'];
+const STICKERS = [['Koala', '🐨'], ['Dino', '🦕'], ['Elefant', '🐘'], ['Giraffe', '🦒'], ['Löwe', '🦁'], ['Pinguin', '🐧'], ['Delfin', '🐬'], ['Schmetterling', '🦋'], ['Schildkröte', '🐢'], ['Papagei', '🦜'], ['Fuchs', '🦊'], ['Panda', '🐼'], ['Hase', '🐰'], ['Zebra', '🦓'], ['Oktopus', '🐙'], ['Flamingo', '🦩'], ['Igel', '🦔'], ['Frosch', '🐸'], ['Wal', '🐳'], ['Einhorn', '🦄'], ['Biene', '🐝'], ['Marienkäfer', '🐞'], ['Tiger', '🐯'], ['Eule', '🦉']];
+
+const CASES = [
+  {
+    id: 'c1', icon: '🥚', short: 'Das Dino-Ei ist weg!', cls: 'c1',
+    intro: [
+      { t: 'Oh nein! Im Dino-Park ist das Dino-Ei verschwunden!', pic: '🥚' },
+      { t: 'Kommst du mit? Wir sind die Koala-Detektei und suchen Hinweise!', pic: '🔍' }
+    ],
+    clues: [
+      { pic: '🪶', t: 'Hier liegt eine Feder!' }, { pic: '🌳', t: 'Die Spuren enden hoch oben im Baum.' },
+      { pic: '🥜', t: 'Jemand hat Nuss-Krümel fallen lassen.' }, { pic: '🗣️', t: 'Und da ruft jemand: Hallo, Hallo!' },
+      { pic: '🍃', t: 'Das Ei liegt warm zugedeckt mit Blättern.' }
+    ],
+    suspects: [
+      { id: 'papagei', pic: '🦜', no: '' },
+      { id: 'pinguin', pic: '🐧', no: 'Ein Pinguin kann nicht auf einen Baum fliegen.' },
+      { id: 'maus', pic: '🐭', no: 'Eine Maus hat keine Federn.' }
+    ],
+    culprit: 'papagei',
+    outro: [
+      { t: 'Der Papagei war es! Er hat das Ei nur warm gehalten, weil es so kalt war.', pic: '🦜' },
+      { t: 'Das Dino-Ei ist wieder da. Toll gemacht, Detektivin!', pic: '🥚' }
+    ]
+  },
+  {
+    id: 'c2', icon: '🌿', short: 'Wer hat den Eukalyptus genascht?', cls: 'c2',
+    intro: [
+      { t: 'Nanu? Mein Eukalyptus-Baum ist ganz kahl!', pic: '🌿' },
+      { t: 'Wer war das nur? Los, wir suchen Hinweise!', pic: '🔍' }
+    ],
+    clues: [
+      { pic: '✨', t: 'Ein glitzernder Streifen auf dem Boden!' }, { pic: '⏳', t: 'Die Spur ist ganz langsam gegangen.' },
+      { pic: '🍃', t: 'In den Blättern ist ein kleines rundes Loch.' }, { pic: '🌀', t: 'Am Stamm ist ein Muster wie eine Spirale.' },
+      { pic: '🌿', t: 'Aus dem Gebüsch gucken zwei kleine Fühler heraus!' }
+    ],
+    suspects: [
+      { id: 'hase', pic: '🐰', no: 'Ein Hase ist schnell. Die Spur war ganz langsam.' },
+      { id: 'giraffe', pic: '🦒', no: 'Eine Giraffe ist viel zu groß und macht keine Glitzerspur.' },
+      { id: 'schnecke', pic: '🐌', no: '' }
+    ],
+    culprit: 'schnecke',
+    outro: [
+      { t: 'Die Schnecke war es! Sie wollte mir einen Eukalyptus-Kuchen backen.', pic: '🐌' },
+      { t: 'Wie lieb! Zusammen essen wir jetzt Kuchen.', pic: '🍰' }
+    ]
+  },
+  {
+    id: 'c3', icon: '🌈', short: 'Wo sind die Regenbogen-Farben?', cls: 'c3',
+    intro: [
+      { t: 'Schau mal! Der Regenbogen ist ganz grau!', pic: '☁️' },
+      { t: 'Wer hat die Farben mitgenommen? Wir finden es heraus!', pic: '🔍' }
+    ],
+    clues: [
+      { pic: '🎨', t: 'Bunte Fußspuren: rot, gelb und blau!' }, { pic: '🌳', t: 'Die Spur endet an einem Ast im Baum.' },
+      { pic: '👅', t: 'Eine lange Zunge hat Farbtropfen verteilt.' }, { pic: '👀', t: 'Die Augen schauen in zwei Richtungen gleichzeitig.' },
+      { pic: '🟩', t: 'Auf dem Ast wechselt jemand die Farbe von Grün zu Lila!' }
+    ],
+    suspects: [
+      { id: 'baer', pic: '🐻', no: 'Ein Bär hat keine lange bunte Zunge.' },
+      { id: 'chamaeleon', pic: '🦎', no: '' },
+      { id: 'eule', pic: '🦉', no: 'Eine Eule kann ihre Farbe nicht wechseln.' }
+    ],
+    culprit: 'chamaeleon',
+    outro: [
+      { t: 'Das Chamäleon war es! Es wollte ein Farbenfest feiern und hat sich Farben geliehen.', pic: '🦎' },
+      { t: 'Jetzt leuchtet der Regenbogen wieder. Super Arbeit!', pic: '🌈' }
+    ]
+  }
+,
+  {
+    id: 'c4', icon: '🎂', short: 'Wo ist der Geburtstagskuchen?', cls: 'c2',
+    intro: [{ t: 'Oh nein! Der Geburtstagskuchen ist vom Tisch verschwunden!', pic: '🎂' }, { t: 'Die Gäste kommen gleich. Wir müssen ihn schnell finden!', pic: '🔍' }],
+    clues: [{ pic: '🌰', t: 'Hier liegen kleine Nussschalen.' }, { pic: '🦶', t: 'Die Spuren sind ganz klein und leicht.' }, { pic: '🌳', t: 'Sie führen zu einem hohen Baum.' }, { pic: '🕳️', t: 'Im Baumstamm ist ein kleines Loch.' }, { pic: '🧶', t: 'Am Loch hängen ein paar weiche, buschige Haare.' }],
+    suspects: [{ id: 'eichhoernchen', pic: '🐿️', no: '' }, { id: 'elefant', pic: '🐘', no: 'Ein Elefant passt nicht in das kleine Loch.' }, { id: 'fisch', pic: '🐟', no: 'Ein Fisch kann nicht auf einen Baum klettern.' }],
+    culprit: 'eichhoernchen',
+    outro: [{ t: 'Das Eichhörnchen war es! Es wollte den Kuchen sicher verstecken, bis alle da sind.', pic: '🐿️' }, { t: 'Jetzt kann die Feier beginnen. Alles Gute zum Geburtstag!', pic: '🎉' }]
+  },
+  {
+    id: 'c5', icon: '⭐', short: 'Wer hat die Sterne geholt?', cls: 'c3',
+    intro: [{ t: 'Schau mal in den Nachthimmel! Ein paar Sterne sind weg!', pic: '🌙' }, { t: 'Nimm deine Lupe. Wir suchen im Dunkeln nach Hinweisen!', pic: '🔍' }],
+    clues: [{ pic: '🌙', t: 'Es ist mitten in der Nacht.' }, { pic: '🪶', t: 'Hier liegt eine weiche braune Feder.' }, { pic: '👀', t: 'Im Dunkeln leuchten zwei große runde Augen.' }, { pic: '🤫', t: 'Man hört nur ein leises Uh-Uh.' }, { pic: '🌲', t: 'Die Spur endet an einer hohen Tanne.' }],
+    suspects: [{ id: 'hund', pic: '🐶', no: 'Ein Hund kann nicht leise fliegen.' }, { id: 'eule', pic: '🦉', no: '' }, { id: 'krokodil', pic: '🐊', no: 'Ein Krokodil wohnt im Wasser und nicht im Baum.' }],
+    culprit: 'eule',
+    outro: [{ t: 'Die Eule war es! Sie hat sich die Sterne geliehen, damit ihr Nest nachts hell leuchtet.', pic: '🦉' }, { t: 'Sie hängt sie wieder an den Himmel. Danke, Detektivin!', pic: '⭐' }]
+  },
+  {
+    id: 'c6', icon: '🐚', short: 'Wer hat die Muscheln mitgenommen?', cls: 'c1',
+    intro: [{ t: 'Am Strand sind alle schönen Muscheln verschwunden!', pic: '🏖️' }, { t: 'Wer war das? Wir suchen im Sand nach Spuren!', pic: '🔍' }],
+    clues: [{ pic: '👣', t: 'Im Sand sind merkwürdige Spuren.' }, { pic: '↔️', t: 'Sie gehen immer zur Seite.' }, { pic: '🌊', t: 'Die Spur endet im nassen Sand am Wasser.' }, { pic: '✂️', t: 'Hier sind kleine Zwick-Abdrücke.' }, { pic: '🏰', t: 'Eine kleine Sandburg ist mit Muscheln geschmückt.' }],
+    suspects: [{ id: 'krebs', pic: '🦀', no: '' }, { id: 'katze', pic: '🐱', no: 'Katzen mögen kein Wasser.' }, { id: 'pinguin', pic: '🐧', no: 'Ein Pinguin läuft geradeaus und nicht zur Seite.' }],
+    culprit: 'krebs',
+    outro: [{ t: 'Der Krebs war es! Er hat sich ein Muschel-Haus gebaut.', pic: '🦀' }, { t: 'Er zeigt uns sein schönes Zuhause. Wie toll!', pic: '🐚' }]
+  },
+  {
+    id: 'c7', icon: '🎵', short: 'Wer spielt die geheime Melodie?', cls: 'c2',
+    intro: [{ t: 'Hörst du das? Irgendwo spielt eine geheime Melodie!', pic: '🎵' }, { t: 'Wer macht die Musik? Komm, wir folgen den Tönen!', pic: '🔍' }],
+    clues: [{ pic: '🎶', t: 'Die Töne kommen vom Teich.' }, { pic: '💧', t: 'Am Ufer sind nasse Fußspuren.' }, { pic: '🟢', t: 'Etwas Grünes ist hier gehüpft.' }, { pic: '🪷', t: 'Bei der Seerose sitzt jemand.' }, { pic: '🗣️', t: 'Und es macht immer wieder: Quak, Quak!' }],
+    suspects: [{ id: 'frosch', pic: '🐸', no: '' }, { id: 'hase', pic: '🐰', no: 'Ein Hase ist nicht grün.' }, { id: 'kuh', pic: '🐄', no: 'Eine Kuh kann nicht so weit hüpfen.' }],
+    culprit: 'frosch',
+    outro: [{ t: 'Der Frosch war es! Er übt für das große Teich-Konzert.', pic: '🐸' }, { t: 'Wir klatschen ganz laut. Bravo!', pic: '👏' }]
+  },
+  {
+    id: 'c8', icon: '🎈', short: 'Wohin sind die Ballons geflogen?', cls: 'c3',
+    intro: [{ t: 'Die Luftballons für das Fest sind weg!', pic: '🎈' }, { t: 'Sie können doch nicht von allein verschwinden. Wir suchen sie!', pic: '🔍' }],
+    clues: [{ pic: '🎈', t: 'Die Schnüre hängen ganz weit oben.' }, { pic: '🍃', t: 'Oben sind die Blätter angeknabbert.' }, { pic: '🦶', t: 'Die Fußspuren sind sehr weit auseinander.' }, { pic: '🟤', t: 'Im Schatten sieht man ein Muster aus braunen Flecken.' }, { pic: '🌳', t: 'Ein Schatten mit einem ganz langen Hals fällt auf den Baum.' }],
+    suspects: [{ id: 'maus', pic: '🐭', no: 'Eine Maus kommt gar nicht so hoch hinauf.' }, { id: 'schildkroete', pic: '🐢', no: 'Eine Schildkröte ist zu klein und zu langsam.' }, { id: 'giraffe', pic: '🦒', no: '' }],
+    culprit: 'giraffe',
+    outro: [{ t: 'Die Giraffe war es! Sie hat die Ballons ganz oben im Baum festgebunden.', pic: '🦒' }, { t: 'So sieht das Fest von Weitem toll aus. Schön!', pic: '🎈' }]
+  },
+  {
+    id: 'c9', icon: '⛄', short: 'Wer hat die Schneemann-Nase?', cls: 'c1',
+    intro: [{ t: 'Oh je! Der Schneemann hat seine Nase verloren!', pic: '⛄' }, { t: 'Wer hat sie mitgenommen? Wir suchen im Schnee!', pic: '🔍' }],
+    clues: [{ pic: '🥕', t: 'Die Möhren-Nase ist weg.' }, { pic: '🐾', t: 'Im Schnee sind Hoppel-Spuren.' }, { pic: '👂', t: 'Daneben sind zwei lange Abdrücke von Ohren.' }, { pic: '🟠', t: 'Hier liegen kleine orange Möhren-Krümel.' }, { pic: '🕳️', t: 'Die Spur endet an einem Bau unter der Wurzel.' }],
+    suspects: [{ id: 'fuchs', pic: '🦊', no: 'Ein Fuchs hat keine langen Ohren.' }, { id: 'igel', pic: '🦔', no: 'Ein Igel macht im Winter Winterschlaf.' }, { id: 'hase', pic: '🐰', no: '' }],
+    culprit: 'hase',
+    outro: [{ t: 'Der Hase war es! Er hatte im Winter so großen Hunger.', pic: '🐰' }, { t: 'Wir geben ihm eine Möhre und dem Schneemann eine neue Nase.', pic: '🥕' }]
+  },
+  {
+    id: 'c10', icon: '🗝️', short: 'Wer hat den Zauber-Schlüssel?', cls: 'c2',
+    intro: [{ t: 'Der goldene Zauber-Schlüssel ist verschwunden!', pic: '🗝️' }, { t: 'Das ist unser größter Fall. Bist du bereit?', pic: '🔍' }],
+    clues: [{ pic: '✨', t: 'Etwas Goldenes hat hier geglitzert.' }, { pic: '🍌', t: 'Auf dem Weg liegen Bananenschalen.' }, { pic: '🌴', t: 'Die Spur führt zu den Palmen.' }, { pic: '🙈', t: 'Und da kichert jemand ganz leise.' }, { pic: '🤸', t: 'Über uns schwingt jemand von Ast zu Ast.' }],
+    suspects: [{ id: 'wal', pic: '🐳', no: 'Ein Wal lebt im Meer und nicht im Wald.' }, { id: 'schnecke', pic: '🐌', no: 'Eine Schnecke schafft den Weg nicht so schnell.' }, { id: 'affe', pic: '🐒', no: '' }],
+    culprit: 'affe',
+    outro: [{ t: 'Der Affe war es! Der Schlüssel hat so schön geglitzert.', pic: '🐒' }, { t: 'Er gibt ihn zurück. Du bist eine großartige Detektivin!', pic: '🏆' }]
+  }
+];
+/* Schlussfolgerung nach jedem Hinweis: Bezug zur Fallfrage */
+const DEDUCE = {"c1": ["Der Dieb, der das Ei geklaut hat, hat also Federn.", "Der Dieb kann also fliegen oder klettern. Er ist hoch oben im Baum.", "Der Dieb mag also Nüsse.", "Der Dieb kann also sprechen!", "Der Dieb wollte das Ei also warm halten. Er hat es nicht böse gemeint."], "c2": ["Der Dieb, der den Eukalyptus genascht hat, hinterlässt also eine glitzernde Spur.", "Der Dieb ist also ganz langsam.", "Der Dieb hat also einen kleinen Mund. Er knabbert kleine Löcher.", "Der Dieb hat also etwas mit einer Spirale. Vielleicht ein Haus auf dem Rücken.", "Der Dieb hat also kleine Fühler."], "c3": ["Der Dieb, der die Farben geklaut hat, ist also durch Farbe gelaufen.", "Der Dieb kann also auf Bäume klettern.", "Der Dieb hat also eine lange Zunge.", "Der Dieb kann also mit jedem Auge in eine andere Richtung schauen.", "Der Dieb kann also seine Farbe wechseln."], "c4": ["Der Dieb, der den Kuchen geklaut hat, mag also Nüsse.", "Der Dieb ist also klein und leicht.", "Der Dieb wohnt also hoch oben in einem Baum.", "Der Dieb wohnt also in einem Baumloch.", "Der Dieb hat also weiches, buschiges Fell."], "c5": ["Der Dieb, der die Sterne geholt hat, ist also nachts unterwegs.", "Der Dieb hat also Federn und kann fliegen.", "Der Dieb hat also große Augen, die im Dunkeln leuchten.", "Der Dieb ruft also leise Uh-Uh.", "Der Dieb wohnt also in einer hohen Tanne."], "c6": ["Der Dieb, der die Muscheln mitgenommen hat, hat also merkwürdige Füße.", "Der Dieb läuft also seitwärts.", "Der Dieb lebt also am Wasser.", "Der Dieb hat also Scheren zum Zwicken.", "Der Dieb hat die Muscheln also für seine Sandburg genommen."], "c7": ["Der Musikant, der die Melodie spielt, ist also am Teich.", "Der Musikant hat also nasse Füße.", "Der Musikant ist also grün und kann hüpfen.", "Der Musikant sitzt also bei der Seerose.", "Der Musikant quakt also!"], "c8": ["Der Dieb, der die Ballons geholt hat, ist also sehr groß.", "Der Dieb frisst also Blätter.", "Der Dieb hat also sehr lange Beine.", "Der Dieb hat also braune Flecken.", "Der Dieb hat also einen sehr langen Hals."], "c9": ["Der Dieb, der die Nase geklaut hat, mag also Möhren.", "Der Dieb hoppelt also.", "Der Dieb hat also lange Ohren.", "Der Dieb hat die Möhre also aufgeknabbert.", "Der Dieb wohnt also in einem Bau unter der Erde."], "c10": ["Der Dieb, der den Schlüssel hat, hat also etwas Goldenes gefunden.", "Der Dieb mag also Bananen.", "Der Dieb wohnt also bei den Palmen.", "Der Dieb kichert also gern.", "Der Dieb kann also gut von Ast zu Ast schwingen."]};
+CASES.forEach(c => c.clues.forEach((l, i) => { l.so = DEDUCE[c.id][i]; }));
+
+/* ================= Speicher ================= */
+const KEY = 'koala-detektei-v1';
+const defaults = () => ({
+  name: 'Sternchen', unlocked: { I: 1, L: 1, O: 1, A: 1, M: 1 }, intro: { I: 1, L: 1, O: 1, A: 1, M: 1 },
+  sk: {}, lst: {}, stars: 0, stickers: [0], cases: {}, days: {},
+  seen: [], set: { speak: true, sfx: true, rate: 0.85, voice: '', range: 10 }
+});
+let S = defaults();
+function loadState() {
+  try { const s = localStorage.getItem(KEY); if (s) { const o = JSON.parse(s); S = Object.assign(defaults(), o); S.set = Object.assign(defaults().set, o.set || {}); } } catch (e) { /* ohne Speicher weiterspielen */ }
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* ignorieren */ } }
+function sk(k) { return S.sk[k] || (S.sk[k] = { c: 0, w: 0, lv: 1, st: 0, ws: 0 }); }
+function record(skill, ok, letter) {
+  const s = sk(skill);
+  if (ok) { s.c++; s.st++; s.ws = 0; if (s.st >= 3 && s.lv < 3) { s.lv++; s.st = 0; } } else { s.w++; s.st = 0; s.ws++; if (s.ws >= 2 && s.lv > 1) { s.lv--; s.ws = 0; } }
+  if (letter) { const l = S.lst[letter] || (S.lst[letter] = { c: 0, w: 0 }); ok ? l.c++ : l.w++; }
+  save();
+}
+const acc = o => (o && o.c + o.w > 0) ? o.c / (o.c + o.w) : null;
+
+/* ================= Aufnahmen (IndexedDB) ================= */
+const CLIPS = new Map();
+let idb = null;
+function idbOpen() {
+  return new Promise(res => {
+    try {
+      const rq = indexedDB.open('koala-audio', 1);
+      rq.onupgradeneeded = () => rq.result.createObjectStore('clips');
+      rq.onsuccess = () => { idb = rq.result; res(true); };
+      rq.onerror = () => res(false);
+    } catch (e) { res(false); }
+  });
+}
+function idbAll() {
+  return new Promise(res => {
+    if (!idb) return res();
+    try {
+      const rq = idb.transaction('clips').objectStore('clips').openCursor();
+      rq.onsuccess = () => { const c = rq.result; if (c) { CLIPS.set(c.key, URL.createObjectURL(c.value)); c.continue(); } else res(); };
+      rq.onerror = () => res();
+    } catch (e) { res(); }
+  });
+}
+function clipPut(key, blob) {
+  if (CLIPS.has(key)) URL.revokeObjectURL(CLIPS.get(key));
+  CLIPS.set(key, URL.createObjectURL(blob));
+  if (idb) try { idb.transaction('clips', 'readwrite').objectStore('clips').put(blob, key); } catch (e) { /* ignorieren */ }
+}
+function clipDel(key) {
+  if (CLIPS.has(key)) URL.revokeObjectURL(CLIPS.get(key));
+  CLIPS.delete(key);
+  if (idb) try { idb.transaction('clips', 'readwrite').objectStore('clips').delete(key); } catch (e) { /* ignorieren */ }
+}
+
+/* ================= Sprache ================= */
+let HT = 0;
+const synth = ('speechSynthesis' in window) ? window.speechSynthesis : null;
+let spkToken = 0, curAudio = null, voiceObj = null, MUTED = false;   // MUTED gilt nur bis die App neu geöffnet wird
+function deVoices() { return synth ? synth.getVoices().filter(v => /^de/i.test(v.lang)) : []; }
+function chooseVoice() {
+  const vs = deVoices(); if (!vs.length) { voiceObj = null; return; }
+  const named = vs.find(v => v.name === S.set.voice); if (named) { voiceObj = named; return; }
+  const score = v => (/anna|helena|petra|marlene|vicki|katja|siri|hedda/i.test(v.name) ? 3 : 0) + (/premium|enhanced|erweitert|natural/i.test(v.name) ? 4 : 0) + (v.localService ? 1 : 0) + (/de-DE/i.test(v.lang) ? 1 : 0);
+  voiceObj = vs.slice().sort((a, b) => score(b) - score(a))[0];
+}
+if (synth) { chooseVoice(); synth.onvoiceschanged = chooseVoice; }
+function warmUp() {   // lädt die Stimme im Voraus, damit der erste Satz nicht hängt
+  if (!synth) return;
+  try { const u = new SpeechSynthesisUtterance('.'); u.volume = 0; u.lang = 'de-DE'; if (voiceObj) u.voice = voiceObj; synth.speak(u); } catch (e) { /* */ }
+}
+function ttsSay(text, token) {
+  return new Promise(res => {
+    if (!synth || !text) return setTimeout(res, 300);
+    const est = 400 + text.length * 80 / S.set.rate;
+    let done = false, started = false, tries = 0, poll = null, w1 = null, u = null, idle = 0;
+    const fin = () => { if (done) return; done = true; clearTimeout(w1); clearTimeout(w2); clearInterval(poll); res(); };
+    const w2 = setTimeout(fin, est + 3000);                     // Notausgang, falls nie ein Ende gemeldet wird
+    const go = () => {
+      if (done || token !== spkToken) return fin();
+      tries++;
+      const mine = u = new SpeechSynthesisUtterance(text);
+      mine.lang = 'de-DE'; if (voiceObj) mine.voice = voiceObj; mine.rate = S.set.rate; mine.pitch = 1.08;
+      mine.onstart = () => {
+        started = true; clearTimeout(w1);
+        if (!poll) poll = setInterval(() => {                   // iPad meldet das Ende manchmal nicht: selbst nachsehen
+          if (token !== spkToken) return fin();
+          idle = (!synth.speaking && !synth.pending) ? idle + 1 : 0;
+          if (idle >= 2) fin();
+        }, 120);
+      };
+      mine.onend = () => { if (u === mine) fin(); };
+      mine.onerror = () => { if (u === mine) fin(); };
+      synth.speak(mine);
+      w1 = setTimeout(() => {                                   // Start hängt: einmal neu anstoßen
+        if (!started && !done && tries < 2 && token === spkToken) { u = null; try { synth.cancel(); } catch (e) { /* */ } setTimeout(go, 60); }
+      }, 1200);
+    };
+    go();
+  });
+}
+function playClip(url, token) {
+  return new Promise(res => {
+    if (token !== spkToken) return res();
+    const a = new Audio(url); curAudio = a;
+    const fin = () => res();
+    a.onended = fin; a.onerror = fin;
+    a.play().catch(fin);
+    setTimeout(fin, 15000);
+  });
+}
+function stopSpeech() {
+  spkToken++;
+  let was = false;
+  try { if (synth && (synth.speaking || synth.pending)) { was = true; synth.cancel(); } } catch (e) { /* */ }
+  if (curAudio) { try { curAudio.pause(); } catch (e) { /* */ } curAudio = null; }
+  return was;
+}
+/* segs: [{k:'ph.wieviele', t:'Wie viele…', p:1}] – Aufnahme (k) hat Vorrang, sonst iPad-Stimme (t) */
+async function speak(segs, force) {
+  if ((!S.set.speak || MUTED) && !force) { stopSpeech(); return; }
+  const was = stopSpeech();
+  const token = spkToken;
+  if (was) await sleep(70);
+  let buf = [];
+  const flush = async () => { if (buf.length) { let txt = buf.join(' ').replace(/ ([?.!,])/g, '$1'); buf = []; if (!/[A-Za-zÄÖÜäöüß0-9]/.test(txt)) return; if (!/[.!?]$/.test(txt)) txt += '.'; await ttsSay(txt, token); } };
+  for (const s of segs) {
+    if (token !== spkToken) return;
+    if (s.k && CLIPS.has(s.k)) { await flush(); await playClip(CLIPS.get(s.k), token); }
+    else if (s.t) { buf.push((s.p && buf.length ? '. ' : '') + s.t); }
+  }
+  if (token === spkToken) await flush();
+}
+const P = k => ({ k: 'ph.' + k, t: PHR[k] });
+const N = n => ({ k: 'n.' + n, t: NUMW[n] });
+const Wd = w => ({ k: 'w.' + w.toLowerCase(), t: w });
+const Lt = L => ({ k: 'l.' + L, t: LSAY[L] });
+const Ls = L => ({ k: 's.' + L });          // Laut – nur mit eigener Aufnahme
+const T = (t, k) => ({ t, k });
+const Q = { t: '?' };
+
+/* ================= Klänge ================= */
+let actx = null;
+function audioUnlock() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch (e) { /* */ } }
+function tone(f, t0, d, type = 'sine', v = 0.12) {
+  if (!actx || !S.set.sfx) return;
+  const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + t0;
+  o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+  o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + d + 0.05);
+}
+function sfx(k) {
+  if (k === 'ok') { tone(660, 0, .18); tone(880, .1, .25); }
+  else if (k === 'no') { tone(300, 0, .25, 'triangle', .1); tone(250, .12, .3, 'triangle', .08); }
+  else if (k === 'tap') tone(520, 0, .08, 'sine', .08);
+  else if (k === 'win') [523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, i * .12, .35));
+  else if (k === 'clue') { tone(784, 0, .15); tone(1046, .12, .3); }
+}
+
+/* ================= Koala ================= */
+function koala(mood = 'happy', cls = '') {
+  const mouth = mood === 'oops' ? '<path d="M88 150 Q100 141 112 150" stroke="#5a3346" stroke-width="4" fill="none" stroke-linecap="round"/>'
+    : mood === 'wow' ? '<ellipse cx="100" cy="148" rx="8" ry="10" fill="#7a3d4f"/>'
+      : '<path d="M86 142 Q100 158 114 142" stroke="#5a3346" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  return `<svg class="koala ${cls}" viewBox="0 0 200 190" role="img" aria-label="Koala-Detektiv">
+  <circle cx="38" cy="82" r="32" fill="#a9bdd0"/><circle cx="38" cy="82" r="19" fill="#ffc9d9"/>
+  <circle cx="162" cy="82" r="32" fill="#a9bdd0"/><circle cx="162" cy="82" r="19" fill="#ffc9d9"/>
+  <ellipse cx="100" cy="110" rx="70" ry="64" fill="#bccddc"/>
+  <ellipse cx="100" cy="132" rx="40" ry="30" fill="#eaf2f8"/>
+  <ellipse cx="100" cy="116" rx="19" ry="25" fill="#34435a"/><ellipse cx="94" cy="106" rx="6" ry="8" fill="#6a7d99" opacity=".7"/>
+  <g class="eye"><circle cx="66" cy="98" r="10" fill="#1d2a3a"/><circle cx="69" cy="94" r="3.4" fill="#fff"/></g>
+  <g class="eye"><circle cx="134" cy="98" r="10" fill="#1d2a3a"/><circle cx="137" cy="94" r="3.4" fill="#fff"/></g>
+  <ellipse cx="52" cy="122" rx="12" ry="7" fill="#ffb3cb" opacity=".75"/><ellipse cx="148" cy="122" rx="12" ry="7" fill="#ffb3cb" opacity=".75"/>
+  ${mouth}
+  <path d="M48 70 Q50 26 100 24 Q150 26 152 70 Q100 56 48 70Z" fill="#4a90d9"/>
+  <path d="M48 70 Q100 56 152 70 L150 78 Q100 64 50 78Z" fill="#2bb5b0"/>
+  <circle cx="100" cy="22" r="8" fill="#ffd3e2"/></svg>`;
+}
+
+/* ================= Aufgaben-Erzeuger ================= */
+const LVMAX = { 10: [0, 5, 8, 10], 20: [0, 10, 15, 20], 50: [0, 20, 35, 50], 100: [0, 50, 75, 100] };
+const RANGES = [10, 20, 50, 100];
+const rangeNow = () => (LVMAX[S.set.range] ? S.set.range : 10);
+const lvMax = k => LVMAX[rangeNow()][sk(k).lv];
+const NUMSK = ['count', 'numrec', 'plus', 'minus', 'missing', 'more', 'nachbar', 'zerleg'];
+const SHAPES = [['Kreis', '🔵', 'den'], ['Quadrat', '🟦', 'das'], ['Dreieck', '🔺', 'das'], ['Stern', '⭐', 'den'], ['Herz', '❤️', 'das']];
+function syl(w) { return (w.toLowerCase().replace(/qu/g, 'k').replace(/au|eu|äu|ei|ie|ai/g, 'a').match(/[aeiouäöüy]/g) || []).length; }
+const ALLWORDS = () => Object.values(WORDS).flat();
+function grp(n, e, cls = '') { return `<div class="grp ${n > 10 ? 'five sm' : ''} ${cls}">${Array.from({ length: n }, (_, i) => `<span class="it" data-i="${i}">${e}</span>`).join('')}</div>`; }
+/* Zehnerstangen (je 10 Bilder) und Einzelne – für Zahlen über 20 */
+function pool(n, e, cls = '', id = '') {
+  const t = Math.floor(n / 10), o = n % 10, dots = k => Array.from({ length: k }, () => `<span class="dt">${e}</span>`).join('');
+  return `<div class="pool ${cls}" ${id ? `data-p="${id}"` : ''}>${Array.from({ length: t }, () => `<div class="tb">${dots(10)}</div>`).join('')}${o ? `<div class="tb un">${dots(o)}</div>` : ''}</div>`;
+}
+async function poolAnim(sel) {
+  const my = HT, root = $(sel); if (!root) return;
+  const bars = $$('.tb', root); let n = 0;
+  for (const bar of bars) {
+    if (!bar.isConnected || my !== HT) return;
+    const k = bar.children.length;
+    if (k === 10) { n += 10; bar.classList.add('hl'); if (S.set.speak) speak([N(n)]); await sleep(1000); }
+    else { bar.classList.add('hl'); for (let i = 1; i <= k; i++) { if (!bar.isConnected || my !== HT) return; n++; if (S.set.speak) speak([N(n)]); await sleep(700); } }
+  }
+}
+function numOpts(c, max, n = 4, step = 1) {
+  if (Math.max(max, c) <= 10) {
+    const pl = []; for (let i = 0; i <= Math.min(10, max + 1); i++) if (i !== c) pl.push(i);
+    pl.sort((a, b) => Math.abs(a - c) - Math.abs(b - c) + (Math.random() - .5) * 3);
+    return shuffle([c, ...pl.slice(0, n - 1)]);
+  }
+  const cap = Math.min(100, Math.max(max, c)), cand = [];
+  const add = v => { if (Number.isInteger(v) && v >= 0 && v <= cap && v !== c && !cand.includes(v)) cand.push(v); };
+  if (c >= 10 && c < 100) { const sw = (c % 10) * 10 + Math.floor(c / 10); if (sw >= 10) add(sw); }
+  [step, 1, 2, 10, 2 * step].forEach(dd => { add(c + dd); add(c - dd); });
+  cand.sort((x, y) => Math.abs(x - c) + Math.random() * 5 - Math.abs(y - c) - Math.random() * 5);
+  const set = [c, ...cand.slice(0, n - 1)];
+  while (set.length < n) { const v = rnd(0, cap); if (!set.includes(v)) set.push(v); }
+  return shuffle(set);
+}
+const numTiles = arr => arr.map(v => ({ v, html: String(v) }));
+function letterOpts(c, n = 4) {
+  const unl = LETTERS.filter(l => S.unlocked[l] && l !== c);
+  const look = LOOK.filter(p => p.includes(c)).map(p => p.replace(c, '')).join('').split('').filter(l => S.unlocked[l]);
+  const set = [c];
+  [...shuffle(look), ...shuffle(unl), ...shuffle(LETTERS.filter(l => l !== c))].forEach(l => { if (set.length < n && !set.includes(l)) set.push(l); });
+  return shuffle(set);
+}
+function pickLetter(needWords, avoid) {
+  const cand = LETTERS.filter(l => S.unlocked[l] && (!needWords || WORDS[l]) && l !== avoid);
+  const pool = cand.length ? cand : LETTERS.filter(l => S.unlocked[l]);
+  const w = pool.map(l => { const o = S.lst[l]; const a = acc(o); const n = o ? o.c + o.w : 0; return (n < 3 ? 3 : 1) * (a !== null && a < .7 ? 2 : 1); });
+  let r = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < pool.length; i++) { r -= w[i]; if (r <= 0) return pool[i]; }
+  return pool[0];
+}
+async function countAnim(sel, from = 0) {
+  const its = $$(sel + ' .it'); const my = HT;
+  its.forEach(i => i.classList.remove('n'));
+  for (let i = from; i < its.length; i++) {
+    if (!its[i].isConnected || my !== HT) return;
+    its[i].classList.add('n'); its[i].dataset.n = i + 1; its[i].style.transform = 'scale(1.2)';
+    if (S.set.speak) { speak([N(i + 1)]); }
+    await sleep(720);
+    if (its[i].isConnected) its[i].style.transform = '';
+    if (my !== HT) return;
+  }
+}
+/* Aufgaben für Zahlen über 20: Zehner und Einer, je nach Stufe ohne/mit Übergang */
+function bigPair(kind, lv, max) {
+  for (let t = 0; t < 400; t++) {
+    let a, b;
+    if (kind === 'plus') {
+      a = rnd(10, max - 1); b = rnd(1, max - a); if (b < 1) continue;
+      const carry = (a % 10) + (b % 10) >= 10, simple = b < 10 || b % 10 === 0;
+      if (lv < 3 && carry) continue;
+      if (lv === 1 && !simple) continue;
+      return [a, b, a + b];
+    } else {
+      a = rnd(11, max); b = rnd(1, a - 1);
+      const borrow = (a % 10) < (b % 10), simple = b < 10 || b % 10 === 0;
+      if (lv < 3 && borrow) continue;
+      if (lv === 1 && !simple) continue;
+      return [a, b, a - b];
+    }
+  }
+  return kind === 'plus' ? [20, 5, 25] : [25, 5, 20];
+}
+const STEPS = { 10: [[1], [1], [1]], 20: [[1], [1, 2], [1, 2, 5]], 50: [[1], [1, 2, 5, 10], [2, 5, 10]], 100: [[1, 10], [2, 5, 10], [2, 5, 10]] };
+const GEN = {
+  count(last) {
+    const max = lvMax('count'); let n; do { n = rnd(1, max); } while (n === last.n && max > 1);
+    const e = pick(ITEMS);
+    return { skill: 'count', n, promptH: 'Zähle mal: Wie viele siehst du?', segs: [P('wieviele')], body: n > 20 ? pool(n, e, 'big') : grp(n, e, 'big'), opts: numTiles(numOpts(n, max)), correct: n,
+      hint: () => n > 20 ? poolAnim('#rbody') : countAnim('#rbody'), reveal: [N(n)] };
+  },
+  numrec() {
+    const max = lvMax('numrec'); const n = rnd(sk('numrec').lv >= 3 ? 0 : 1, max);
+    return { skill: 'numrec', promptH: `Tippe auf die Zahl <b>${n}</b>`, segs: [P('tippe_zahl'), N(n)], body: '<div class="bigpic" style="opacity:.9">👆</div>',
+      opts: numTiles(numOpts(n, max)), correct: n, hint: null, reveal: [N(n)] };
+  },
+  plus() {
+    const max = lvMax('plus'), lv = sk('plus').lv, e = pick(ITEMS); let a, b, s, big = max > 20;
+    if (big) [a, b, s] = bigPair('plus', lv, max); else { a = rnd(1, max - 1); b = rnd(1, max - a); s = a + b; }
+    return { skill: 'plus', promptH: `Wie viel ist <b>${a} + ${b}</b>?`, segs: [P('wie_viel_ist'), N(a), P('plus'), N(b), Q],
+      body: `<div class="eq ${big ? 'bigeq' : ''}">${big ? pool(a, e) : grp(a, e)}<div class="eqd">+</div>${big ? pool(b, e) : grp(b, e)}</div><div class="eqd ${big ? 'sm' : ''}">${a} + ${b} = <span class="q">?</span></div>`,
+      opts: numTiles(numOpts(s, Math.max(max, s), 4, b % 10 === 0 ? 10 : 1)), correct: s,
+      hint: big ? (() => { $('#rbody').innerHTML = `<div class="eqd">${a} + ${b} = ${s}</div>${pool(s, e, 'big')}`; return poolAnim('#rbody'); }) : (() => countAnim('#rbody .eq')), reveal: [N(s)] };
+  },
+  minus() {
+    const max = lvMax('minus'), lv = sk('minus').lv, e = pick(ITEMS); let a, b, s, big = max > 20;
+    if (big) [a, b, s] = bigPair('minus', lv, max); else { a = rnd(2, max); b = rnd(1, lv >= 3 ? a : a - 1); s = a - b; }
+    return { skill: 'minus', promptH: `Wie viel ist <b>${a} − ${b}</b>?`, segs: [P('wie_viel_ist'), N(a), P('minus'), N(b), Q],
+      body: `<div class="eq ${big ? 'bigeq' : ''}">${big ? pool(a, e) : grp(a, e)}<div class="eqd">−</div>${big ? pool(b, e) : grp(b, e)}</div><div class="eqd ${big ? 'sm' : ''}">${a} − ${b} = <span class="q">?</span></div>`,
+      opts: numTiles(numOpts(s, Math.max(max, a), 4, b % 10 === 0 ? 10 : 1)), correct: s,
+      hint: big ? (() => { $('#rbody').innerHTML = `<div class="eqd">${a} − ${b} = ${s}</div>${pool(s, e, 'big')}`; return poolAnim('#rbody'); })
+        : (async () => { const my = HT; const first = $$('#rbody .grp')[0]; const its = $$('.it', first); its.slice(a - b).forEach(i => i.classList.add('gone')); await sleep(600); const left = its.slice(0, a - b); for (let i = 0; i < left.length; i++) { if (!left[i].isConnected || my !== HT) return; left[i].classList.add('n'); left[i].dataset.n = i + 1; speak([N(i + 1)]); await sleep(720); } }),
+      reveal: [N(s)] };
+  },
+  missing() {
+    const R = rangeNow(), max = lvMax('missing'), lv = sk('missing').lv;
+    const step = pick(STEPS[R][lv - 1].filter(x => 3 * x <= max)) || 1;
+    const st = step === 1 ? rnd(0, Math.max(0, max - 3)) : step * rnd(0, Math.floor((max - 3 * step) / step));
+    const seq = [st, st + step, st + 2 * step, st + 3 * step];
+    const hole = lv >= 3 ? rnd(0, 3) : rnd(1, 2); const c = seq[hole];
+    return { skill: 'missing', step, promptH: 'Welche Zahl fehlt in der Reihe?', segs: [P('fehlt')],
+      body: `<div class="seq ${seq.some(v => v >= 100) ? 'w3' : ''}">${seq.map((v, i) => `<div class="sq ${i === hole ? 'q' : ''}">${i === hole ? '?' : v}</div>`).join('')}</div>`,
+      opts: numTiles(numOpts(c, Math.max(max, c), 4, step)), correct: c,
+      hint: async () => { const my = HT; for (const v of seq) { if (my !== HT) return; speak([N(v)]); await sleep(800); if (!$('#rbody')) return; } }, reveal: [N(c)] };
+  },
+  more(last) {
+    const max = lvMax('more'), lv = sk('more').lv, less = Math.random() < .4; let a, b;
+    const win = (x, y) => less ? (x < y ? 'a' : 'b') : (x > y ? 'a' : 'b');
+    if (max > 20) {
+      for (let t = 0; t < 300; t++) {
+        a = rnd(1, max); b = rnd(1, max); if (a === b) continue;
+        if (lv === 1 && Math.abs(a - b) < 10) continue;
+        if (lv === 3 && Math.floor(a / 10) !== Math.floor(b / 10) && !(a % 10 && b === (a % 10) * 10 + Math.floor(a / 10))) continue;
+        break;
+      }
+      if (a === b) { a = 3; b = max; }
+      const e = pick(ITEMS), cor = win(a, b);
+      return { skill: 'more', less, promptH: less ? 'Welche Zahl ist kleiner? Tippe darauf.' : 'Welche Zahl ist größer? Tippe darauf.', segs: [P(less ? 'kleiner' : 'groesser')], body: '', optCls: '',
+        opts: [{ v: 'a', html: String(a) }, { v: 'b', html: String(b) }], correct: cor,
+        hint: async () => { $('#rbody').innerHTML = `<div class="eq bigeq">${pool(a, e, '', 'a')}<div class="eqd">?</div>${pool(b, e, '', 'b')}</div>`; await poolAnim('#rbody .pool[data-p="a"]'); await sleep(300); await poolAnim('#rbody .pool[data-p="b"]'); }, reveal: [N(cor === 'a' ? a : b)] };
+    }
+    do { a = rnd(1, max); b = rnd(1, max); } while (a === b);
+    const e = pick(ITEMS), cor = win(a, b);
+    return { skill: 'more', less, promptH: less ? 'Wo sind weniger Bilder? Tippe darauf.' : 'Wo sind mehr Bilder? Tippe darauf.', segs: [P(less ? 'weniger' : 'mehr')], body: '', optCls: 'two',
+      opts: [{ v: 'a', html: grp(a, e) }, { v: 'b', html: grp(b, e) }].map((o, i) => ({ ...o, two: 1 })), correct: cor,
+      hint: async () => { await countAnim('#opts .tile:nth-child(1)'); await sleep(300); await countAnim('#opts .tile:nth-child(2)'); }, reveal: [N(cor === 'a' ? a : b)] };
+  },
+  nachbar(last) {
+    const max = lvMax('nachbar'), lv = sk('nachbar').lv, m = pick(lv === 1 ? ['nach', 'vor'] : ['nach', 'vor', 'zw']); let c, promptH, segs;
+    if (m === 'nach') { const n = rnd(lv >= 3 ? 0 : 1, max - 1); c = n + 1; promptH = `Welche Zahl kommt direkt nach <b>${n}</b>?`; segs = [P('nach'), N(n), Q]; }
+    else if (m === 'vor') { const n = rnd(lv >= 3 ? 1 : 2, max); c = n - 1; promptH = `Welche Zahl kommt direkt vor <b>${n}</b>?`; segs = [P('vor'), N(n), Q]; }
+    else { const x = rnd(0, max - 2); c = x + 1; promptH = `Welche Zahl steht zwischen <b>${x}</b> und <b>${x + 2}</b>?`; segs = [P('zwischen'), N(x), P('und'), N(x + 2), Q]; }
+    const row = [c - 1, c, c + 1].filter(v => v >= 0);
+    return { skill: 'nachbar', promptH, segs, body: '<div class="bigpic" style="opacity:.9">🔎</div>', opts: numTiles(numOpts(c, max)), correct: c,
+      hint: async () => { const my = HT; $('#rbody').innerHTML = `<div class="seq ${row.includes(100) ? 'w3' : ''}">${row.map(v => `<div class="sq ${v === c ? 'q' : ''}">${v === c ? '?' : v}</div>`).join('')}</div>`; for (const v of row) { if (my !== HT) return; speak([N(v)]); await sleep(800); if (!$('#rbody')) return; } }, reveal: [N(c)] };
+  },
+  zerleg(last) {
+    const R = rangeNow(), max = lvMax('zerleg'), lv = sk('zerleg').lv, e = pick(ITEMS); let T, a, tens = false;
+    if (R >= 50 && lv >= 2) { tens = true; T = 10 * rnd(2, Math.floor(max / 10)); a = 10 * rnd(1, T / 10 - 1); }
+    else { const cap = Math.min(max, 20); T = rnd(Math.min(cap, 3), cap); a = rnd(1, T - 1); }
+    const c = T - a;
+    return { skill: 'zerleg', promptH: `Was muss man zu <b>${a}</b> dazutun, damit es <b>${T}</b> ergibt?`, segs: [P('zerl1'), N(a), P('zerl2'), N(T), P('zerl3')],
+      body: tens ? `<div class="eq bigeq">${pool(a, e)}<div class="eqd">+</div><div class="eqd sm"><span class="q">?</span></div></div><div class="eqd sm" style="flex-basis:100%;justify-content:center">${a} + <span class="q">?</span> = ${T}</div>`
+        : `<div class="eq"><div class="eqd">${grp(a, e)}</div><div class="eqd">+</div><div class="eqd"><span class="q">?</span></div></div><div class="eqd">${a} + <span class="q">?</span> = ${T}</div>`,
+      opts: numTiles(numOpts(c, Math.max(max, c), 4, tens ? 10 : 1)), correct: c,
+      hint: tens ? (() => { $('#rbody').innerHTML = `<div class="eqd sm">${a} + ${c} = ${T}</div>${pool(T, e, 'big')}`; return poolAnim('#rbody'); })
+        : (() => { $('#rbody').innerHTML = `<div class="eqd">${a} + ${c} = ${T}</div>${grp(T, e, 'big')}`; return countAnim('#rbody'); }), reveal: [N(c)] };
+  },
+  muster(last) {
+    const lv = sk('muster').lv, [A, B, C] = shuffle(ITEMS).slice(0, 3);
+    const pat = pick(lv === 1 ? [[A, B]] : lv === 2 ? [[A, B], [A, A, B]] : [[A, A, B], [A, B, C], [A, B, B]]), L = pat.length;
+    const j = rnd(0, L - 1), n = 2 * L + j, shown = Array.from({ length: n }, (_, i) => pat[i % L]), c = pat[j];
+    const opts = [c]; [...pat, ...shuffle(ITEMS)].forEach(x => { if (opts.length < (lv === 1 ? 3 : 4) && !opts.includes(x)) opts.push(x); });
+    return { skill: 'muster', promptH: 'Wie geht das Muster weiter? Tippe auf das richtige Bild.', segs: [P('muster')],
+      body: `<div class="seq mu">${shown.map(v => `<div class="sq">${v}</div>`).join('')}<div class="sq q">?</div></div>`,
+      opts: shuffle(opts).map(v => ({ v, html: v })), correct: c,
+      hint: async () => { const my = HT; speak([P('muster_hint')]); const sq = $$('#rbody .sq'); for (const s of sq) { if (my !== HT || !s.isConnected) return; s.classList.add('hl'); await sleep(450); s.classList.remove('hl'); } }, reveal: [] };
+  },
+  anders(last) {
+    const lv = sk('anders').lv, k = lv === 1 ? 3 : lv === 2 ? 4 : 5, [A, B] = shuffle(ITEMS);
+    const tiles = shuffle([...Array(k - 1).fill(A), B]);
+    return { skill: 'anders', promptH: 'Welches Bild ist anders? Tippe darauf.', segs: [P('anders')], body: '<div class="bigpic" style="opacity:.9">🔎</div>',
+      opts: tiles.map(v => ({ v, html: v })), correct: B,
+      hint: () => { $$('#opts .tile').forEach(t => { if (t.dataset.v !== B) t.style.opacity = '.35'; }); return speak([P('anders_hint')]); }, reveal: [] };
+  },
+  form(last) {
+    const lv = sk('form').lv, opts = shuffle(SHAPES).slice(0, lv === 1 ? 3 : 4), t = pick(opts);
+    return { skill: 'form', promptH: `Tippe auf ${t[2]} <b>${t[0]}</b>.`, segs: [T(`Tippe auf ${t[2]} ${t[0]}.`, 'fo.' + t[0].toLowerCase())], body: '<div class="bigpic" style="opacity:.9">🔍</div>',
+      opts: opts.map(o => ({ v: o[0], html: o[1] })), correct: t[0], hint: null, reveal: [Wd(t[0])] };
+  },
+  ltap(last) {
+    const L = pickLetter(false, last.L);
+    const segs = [P('tippe_buchstabe'), Lt(L)]; if (CLIPS.has('s.' + L)) segs.push(Ls(L));
+    const w = WORDS[L] ? pick(WORDS[L]) : null;
+    return { skill: 'ltap', L, promptH: `Tippe auf den Buchstaben <b>${L}</b>`, segs, body: '<div class="bigpic" style="opacity:.9">🔍</div>',
+      opts: letterOpts(L).map(l => ({ v: l, html: l })), correct: L,
+      hint: () => { $('#rbody').innerHTML = `<div class="wordhint"><em>${L}</em>${w ? `<span>${w[1]}</span><span>${w[0]}</span>` : ''}</div>`; return speak([P('das_ist'), Lt(L), ...(w ? [P('wie'), Wd(w[0])] : [])]); },
+      reveal: [Lt(L)] };
+  },
+  anlaut(last) {
+    const L = pickLetter(true, last.L); const w = pick(WORDS[L]);
+    const opts = letterOpts(L, 3).map(l => ({ v: l, html: l }));
+    return { skill: 'anlaut', L, promptH: `Mit welchem Buchstaben fängt <b>${esc(w[0])}</b> an?`, segs: [P('womit'), Wd(w[0]), P('an')],
+      body: `<div class="bigpic">${w[1]}</div>`, opts, correct: L,
+      hint: () => { $('#rbody').innerHTML = `<div class="stage"><div class="bigpic" style="font-size:clamp(80px,20vmin,200px)">${w[1]}</div><div class="wordhint"><em>${w[0][0]}</em>${esc(w[0].slice(1))}</div></div>`; return speak([Wd(w[0]), P('faengt_mit'), Lt(L)]); },
+      reveal: [Lt(L)] };
+  },
+  bildwahl(last) {
+    const L = pickLetter(true, last.L), w = pick(WORDS[L]);
+    const others = LETTERS.filter(l => l !== L && WORDS[l]), pref = shuffle(others.filter(l => S.unlocked[l])), rest = shuffle(others.filter(l => !S.unlocked[l]));
+    const ws = [w, ...[...pref, ...rest].slice(0, 2).map(l => pick(WORDS[l]))];
+    return { skill: 'bildwahl', L, promptH: `Welches Bild fängt mit dem Buchstaben <b>${L}</b> an?`, segs: [P('bild1'), Lt(L), P('bild2')], body: '<div class="bigL" style="font-size:clamp(70px,17vmin,170px)">' + L + '</div>',
+      opts: shuffle(ws).map(x => ({ v: x[0], html: x[1] })), correct: w[0],
+      hint: async () => { const my = HT; for (const t of $$('#opts .tile')) { if (my !== HT || !t.isConnected) return; const word = ws.find(x => x[0] === t.dataset.v)[0]; t.classList.add('glow'); await speak([Wd(word)]); t.classList.remove('glow'); await sleep(200); } }, reveal: [Lt(L)] };
+  },
+  silben(last) {
+    const lv = sk('silben').lv, capk = lv === 1 ? 2 : lv === 2 ? 3 : 5;
+    const cand = ALLWORDS().filter(x => syl(x[0]) <= capk && x[0] !== last.w); const w = pick(cand), k = syl(w[0]);
+    const set = [k]; [k - 1, k + 1, k + 2, k - 2, 1, 2, 3, 4].forEach(v => { if (v >= 1 && v <= 5 && !set.includes(v) && set.length < (lv === 1 ? 3 : 4)) set.push(v); });
+    return { skill: 'silben', w: w[0], promptH: `Wie viele Silben hat das Wort <b>${esc(w[0])}</b>?`, segs: [P('silben1'), Wd(w[0]), Q], body: `<div class="bigpic">${w[1]}</div>`,
+      opts: numTiles(shuffle(set)), correct: k,
+      hint: async () => { const my = HT; $('#rbody').innerHTML = `<div class="stage"><div class="bigpic" style="font-size:clamp(60px,14vmin,150px)">${w[1]}</div><div class="wordhint" id="claps"></div></div>`; await speak([Wd(w[0])]); for (let i = 1; i <= k; i++) { if (my !== HT || !$('#claps')) return; $('#claps').insertAdjacentHTML('beforeend', '<span>👏</span>'); speak([N(i)]); await sleep(800); } }, reveal: [N(k)] };
+  },
+  find(last) {
+    const L = pickLetter(false, last.L); const k = rnd(2, 4);
+    let others = LETTERS.filter(l => S.unlocked[l] && l !== L); if (others.length < 3) others = letterOpts(L, 8).filter(l => l !== L);
+    others = shuffle(others); const cells = [];
+    for (let i = 0; i < 12 - k; i++) cells.push(others[i % others.length]);
+    for (let i = 0; i < k; i++) cells.push(L);
+    return { skill: 'find', L, k, promptH: `Finde alle <b>${L}</b> und tippe darauf.`, segs: [P('finde'), Lt(L), P('finde_ende')], body: '', cells: shuffle(cells), correct: L, reveal: [Lt(L)] };
+  }
+};
+function makeSeq() { return shuffle(Math.random() < .5 ? ['m', 'm', 'm', 'l', 'l'] : ['m', 'm', 'l', 'l', 'l']); }
+const MTYPES = ['count', 'numrec', 'plus', 'minus', 'missing', 'more', 'nachbar', 'zerleg', 'muster', 'anders', 'form'];
+const LTYPES = ['ltap', 'anlaut', 'find', 'bildwahl', 'silben'];
+const rkey = r => [r.skill, r.promptH, String(r.correct), (r.body || '').replace(/<[^>]*>/g, '').slice(0, 50), (r.cells || []).join(''), (r.opts || []).map(o => o.v).join('')].join('|');
+function genRiddle(ses) {
+  const dom = ses.seq[ses.i % 5]; const last = ses.last || {};
+  const types = dom === 'm' ? MTYPES : LTYPES;
+  ses.hist = ses.hist || []; ses.fav = ses.fav || {};
+  if (!ses.fav[dom]) ses.fav[dom] = shuffle(types).slice(0, 2);     // pro Start andere „Lieblings-Aufgaben“
+  const hasW = LETTERS.some(l => S.unlocked[l] && WORDS[l]);
+  const w = types.map(t => {
+    let x = 1;
+    if (t === last.skill) return 0;
+    if ((t === 'anlaut' || t === 'bildwahl') && !hasW) return 0;
+    if (ses.fav[dom].includes(t)) x *= 1.8;
+    if (ses.hist.slice(-4).includes(t)) x *= .3;
+    const a = acc(S.sk[t]); x *= 1 + (a === null ? .5 : (1 - a) * 2);
+    if (t === 'plus' || t === 'minus') x *= 1.4;
+    if (t === 'form' || t === 'anders') x *= .7;
+    return x;
+  });
+  let r, tries = 0;
+  do {
+    const type = weighted(types, w);
+    r = GEN[type](last); r.type = type; r.key = rkey(r);
+  } while ((S.seen || []).includes(r.key) && ++tries < 12);
+  ses.hist.push(r.type); S.seen = (S.seen || []).concat(r.key).slice(-80);
+  r.t0 = Date.now(); r.tries = 0; r.dom = dom;
+  return r;
+}
+function weighted(items, w) { let r = Math.random() * w.reduce((a, b) => a + b, 0); for (let i = 0; i < items.length; i++) { r -= w[i]; if (r <= 0) return items[i]; } return items[0]; }
+/* ================= Bildschirme ================= */
+const app = document.getElementById('app');
+const ACT = {};
+const CUR = {};
+let SES = null, greeted = false;
+app.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+  audioUnlock(); const f = ACT[b.dataset.a]; if (f) f(b, e);
+});
+function screen(html) { app.innerHTML = html; app.scrollTop = 0; }
+const muteBtn = () => `<button class="ico voice ${MUTED ? 'off' : ''}" data-a="mute" aria-label="Vorlesen ein oder aus" aria-pressed="${MUTED}"><span class="vi">${MUTED ? '🤫' : '🗣️'}</span><small>${MUTED ? 'aus' : 'an'}</small></button>`;
+const topbar = (mid = '<span></span>') => `<header class="top"><button class="ico" data-a="home" aria-label="Nach Hause">🏠</button>${mid}<div class="rgt"><button class="ico" data-a="say" aria-label="Nochmal vorlesen" ${MUTED ? 'hidden' : ''}>🔊</button>${muteBtn()}</div></header>`;
+ACT.mute = () => {
+  MUTED = !MUTED; if (MUTED) { stopSpeech(); HT++; } sfx('tap');
+  $$('[data-a=mute]').forEach(b => { b.classList.toggle('off', MUTED); b.setAttribute('aria-pressed', MUTED); b.querySelector('.vi').textContent = MUTED ? '🤫' : '🗣️'; b.querySelector('small').textContent = MUTED ? 'aus' : 'an'; });
+  $$('[data-a=say]').forEach(b => { b.hidden = MUTED; });
+  if (!MUTED && CUR.say) CUR.say();
+};
+ACT.say = () => { CUR.say && CUR.say(); };
+ACT.next = () => { stopSpeech(); HT++; CUR.next && CUR.next(); };
+ACT.home = () => { stopSpeech(); HT++; SES = null; home(); };
+
+function startScreen() {
+  screen(`<header class="top"><span></span>${muteBtn()}</header><div class="center"><div class="bob">${koala('happy')}</div><button class="btn" data-a="begin">▶ Los geht's</button></div>`);
+  CUR.say = null;
+}
+ACT.begin = () => {
+  sfx('tap');
+  warmUp();
+  home(true);
+};
+
+function starsOf(id) { const c = S.cases[id]; return c ? '⭐'.repeat(c.best) + '☆'.repeat(3 - c.best) : '☆☆☆'; }
+function home(first) {
+  const hi = first || !greeted;
+  screen(`<header class="top">${muteBtn()}<button class="ico small" data-a="parent" aria-label="Elternbereich">🔒</button></header>
+  <div class="stage homehead"><div class="bob">${koala('happy', 'sm')}</div><div class="bubble">Hallo ${esc(S.name)}!<br>Welchen Fall wollen wir heute lösen?</div></div>
+  <div class="scroll"><div class="cases">
+    ${CASES.map((c, i) => `<button class="case ${c.cls}" data-a="case" data-id="${c.id}"><span class="num">${i + 1}</span><span class="cpic">${c.icon}</span><span class="ctitle">${esc(c.short)}</span><span class="cst">${starsOf(c.id)}</span></button>`).join('')}
+    <button class="case tr" data-a="train"><span class="cpic">🔍</span><span class="ctitle">Übungsrunde</span><span class="cst">⭐⭐⭐⭐⭐</span></button>
+    <button class="case al" data-a="album"><span class="cpic">📒</span><span class="ctitle">Sticker-Album</span><span class="cst">${S.stickers.length} von ${STICKERS.length}</span></button>
+  </div></div>`);
+  CUR.say = () => speak([P('hallo'), T(S.name), P('hallo2')]);
+  if (hi) { greeted = true; setTimeout(CUR.say, 300); }
+}
+
+/* ---------- Geschichte ---------- */
+function story(lines, i, done, kp) {
+  const l = lines[i], last = i === lines.length - 1;
+  screen(`${topbar()}<div class="center"><div class="stage">${koala('happy', 'sm')}</div>
+    <div class="bubble"><span class="pic">${l.pic}</span>${esc(l.t)}</div>
+    <button class="btn" data-a="next">${last ? 'Los!' : '➜'}</button></div>`);
+  CUR.say = () => speak([T(l.t, kp + '.' + i)]);
+  CUR.next = () => { i + 1 < lines.length ? story(lines, i + 1, done, kp) : done(); };
+  setTimeout(CUR.say, 200);
+}
+
+/* ---------- Neuer Buchstabe ---------- */
+function newLetters() { return LETTERS.filter(L => S.unlocked[L] && !S.intro[L]).slice(0, 2); }
+function introsThen(cb) {
+  const q = newLetters(); if (!q.length) return cb();
+  introLetter(q[0], () => introsThen(cb));
+}
+function introLetter(L, cb) {
+  const ws = WORDS[L] || [];
+  screen(`${topbar()}<div class="center"><div class="bigL">${L}</div>
+    <div class="lgrow">${ws.map(w => `<button class="wcard" data-a="word" data-w="${w[0]}"><span>${w[1]}</span><div><b>${esc(w[0][0])}</b>${esc(w[0].slice(1))}</div></button>`).join('')}</div>
+    <button class="btn" data-a="next">➜</button></div>`);
+  CUR.say = () => speak([P('neu'), P('das_ist'), Lt(L), ...(CLIPS.has('s.' + L) ? [Ls(L)] : []), ...(ws[0] ? [P('wie'), Wd(ws[0][0])] : [])]);
+  CUR.next = () => { S.intro[L] = 1; save(); cb(); };
+  setTimeout(CUR.say, 200);
+}
+ACT.word = b => speak([Wd(b.dataset.w)]);
+
+/* ---------- Fall und Übungsrunde ---------- */
+ACT.case = b => {
+  const c = CASES.find(x => x.id === b.dataset.id); sfx('tap');
+  SES = { kind: 'case', c, i: 0, stars: [], seq: makeSeq(), last: null };
+  introsThen(() => story(c.intro, 0, riddle, 'st.' + c.id + '.in'));
+};
+ACT.train = () => {
+  sfx('tap'); SES = { kind: 'train', i: 0, stars: [], seq: makeSeq(), last: null };
+  introsThen(riddle);
+};
+function riddle() {
+  const r = SES.cur = genRiddle(SES); window.__r = r; HT++;
+  if (r.type === 'find') r.body = `<div class="bigL" style="font-size:clamp(70px,17vmin,170px)">${r.L}</div>`;
+  const pips = Array.from({ length: 5 }, (_, i) => `<span class="pip ${i < SES.stars.length ? 'on' : ''} ${i === SES.i ? 'now' : ''}">${i < SES.stars.length ? '⭐' : ''}</span>`).join('');
+  const opts = r.type === 'find'
+    ? `<div class="fgrid" id="opts">${r.cells.map((c, i) => `<button class="tile" data-a="cell" data-i="${i}" data-v="${c}">${c}</button>`).join('')}</div>`
+    : `<div class="opts ${r.optCls || ''}" id="opts">${r.opts.map(o => `<button class="tile ${o.two ? 'two' : ''}" data-a="ans" data-v="${o.v}">${o.html}</button>`).join('')}</div>`;
+  screen(`${topbar(`<div class="pips">${pips}</div>`)}
+    <main class="riddle"><div class="qrow" id="qrow">${koala('happy', 'sm')}<div class="prompt">${r.promptH}</div></div>
+    <div class="rbody" id="rbody">${r.body}</div>${opts}</main>`);
+  CUR.say = () => speak(r.segs);
+  setTimeout(CUR.say, 250);
+}
+function mood(m) { const q = $('#qrow'); if (q) q.innerHTML = koala(m, 'sm') + q.innerHTML.replace(/^<svg[\s\S]*?<\/svg>/, ''); }
+ACT.ans = b => {
+  const r = SES && SES.cur; if (!r || r.locked) return;
+  if (String(b.dataset.v) === String(r.correct)) { r.locked = true; b.classList.add('ok'); finishRiddle(r, false); }
+  else wrong(r, b);
+};
+ACT.cell = b => {
+  const r = SES && SES.cur; if (!r || r.locked || b.classList.contains('found')) return;
+  if (b.dataset.v === r.correct) {
+    b.classList.add('found', 'ok'); sfx('tap'); r.found = (r.found || 0) + 1; b.disabled = true;
+    if (r.found >= r.k) { r.locked = true; finishRiddle(r, false); }
+  } else {
+    b.classList.add('bad'); sfx('no'); setTimeout(() => b.classList.remove('bad'), 450);
+    if (r.tries === 0) record(r.skill, false, r.L);
+    r.tries++;
+    if (r.tries === 1) speak([P('nochmal')]);
+    if (r.tries >= 2) $$('#opts .tile').forEach(t => { if (t.dataset.v === r.correct && !t.classList.contains('found')) t.classList.add('glow'); });
+    if (r.tries >= 4 && !r.locked) { r.locked = true; $$('#opts .tile').forEach(t => { if (t.dataset.v === r.correct) t.classList.add('found', 'ok'); }); finishRiddle(r, true); }
+  }
+};
+function wrong(r, b) {
+  sfx('no'); b.classList.add('bad'); mood('oops');
+  if (r.tries === 0) record(r.skill, false, r.L);
+  r.tries++;
+  setTimeout(() => { b.classList.remove('bad'); b.disabled = true; mood('happy'); }, 450);
+  if (r.tries === 1) { speak([P('nochmal')]).then(() => { if (SES && SES.cur === r && r.hint && !r.locked) r.hint(); }); }
+  else {
+    r.locked = true; HT++;
+    $$('#opts .tile').forEach(t => { if (String(t.dataset.v) === String(r.correct)) { t.disabled = false; t.classList.add('ok'); } });
+    speak([P('richtig'), ...r.reveal]);
+    const ses = SES; setTimeout(() => { if (SES === ses && ses.cur === r) finishRiddle(r, true); }, 2800);
+  }
+}
+function finishRiddle(r, revealed) {
+  const ses = SES; if (!ses || ses.cur !== r) return;
+  HT++;
+  const first = r.tries === 0, st = first ? 3 : r.tries === 1 ? 2 : 1;
+  if (first) record(r.skill, true, r.L);
+  const d = S.days[today()] || (S.days[today()] = { n: 0, ms: 0 });
+  d.n++; d.ms += Math.min(180000, Date.now() - r.t0); S.stars += st; save();
+  SES.stars.push(st); sfx('ok'); mood('wow');
+  if (!revealed) speak([P('praise' + rnd(0, 4))]);
+  setTimeout(() => { if (SES === ses && ses.cur === r) afterRiddle(); }, revealed ? 200 : 1500);
+}
+function afterRiddle() {
+  if (!SES) return;
+  SES.last = SES.cur; SES.i++;
+  if (SES.kind === 'case') clueScreen(SES.i - 1);
+  else if (SES.i >= 5) reward(); else riddle();
+}
+const tray = n => `<div class="clues">${SES.c.clues.map((c, i) => i < n ? `<button class="clue" data-a="clue" data-i="${i}" aria-label="Hinweis">${c.pic}</button>` : '<div class="clue empty"></div>').join('')}</div>`;
+ACT.clue = b => { const i = +b.dataset.i, c = SES.c.clues[i]; speak([T(c.t, 'cl.' + SES.c.id + '.' + i), T(c.so, 'cs.' + SES.c.id + '.' + i)]); };
+function clueScreen(ci) {
+  const c = SES.c.clues[ci]; sfx('clue');
+  screen(`${topbar()}<div class="center">${tray(ci + 1)}
+    <div class="bubble cbub"><span class="pic">${c.pic}</span>${esc(c.t)}</div>
+    <div class="deduce"><span class="dq">🔎</span>${esc(c.so)}</div><button class="btn" data-a="next">➜</button></div>`);
+  CUR.say = () => speak([P('hinweis'), T(c.t, 'cl.' + SES.c.id + '.' + ci), T(c.so, 'cs.' + SES.c.id + '.' + ci)]);
+  CUR.next = () => { SES.i >= 5 ? who() : riddle(); };
+  setTimeout(CUR.say, 200);
+}
+function who() {
+  const c = SES.c;
+  screen(`${topbar()}<div class="center">${tray(5)}<div class="prompt">Wer war es? Tippe auf das richtige Tier.</div>
+    <div class="suspects">${shuffle(c.suspects).map(s => `<button class="susp" data-a="susp" data-id="${s.id}">${s.pic}</button>`).join('')}</div></div>`);
+  CUR.say = () => speak([P('wer')]);
+  setTimeout(CUR.say, 200);
+}
+ACT.susp = b => {
+  const c = SES.c, s = c.suspects.find(x => x.id === b.dataset.id);
+  if (s.id === c.culprit) {
+    b.classList.add('ok'); sfx('win'); confetti();
+    const ses = SES; setTimeout(() => { if (SES === ses) story(c.outro, 0, reward, 'st.' + c.id + '.out'); }, 1800);
+  } else { b.classList.add('bad'); sfx('no'); setTimeout(() => b.classList.remove('bad'), 450); speak([T(s.no, 'sp.' + c.id + '.' + s.id)]); }
+};
+function reward() {
+  const sum = SES.stars.reduce((a, b) => a + b, 0), avg = sum / SES.stars.length;
+  const rating = avg >= 2.5 ? 3 : avg >= 1.7 ? 2 : 1;
+  if (SES.kind === 'case') { const o = S.cases[SES.c.id] || { best: 0 }; S.cases[SES.c.id] = { best: Math.max(o.best, rating) }; }
+  const free = STICKERS.map((s, i) => i).filter(i => !S.stickers.includes(i));
+  const got = free.length ? pick(free) : null; if (got !== null) S.stickers.push(got);
+  save(); sfx('win'); confetti();
+  const st = got !== null ? STICKERS[got] : null;
+  screen(`<header class="top"><span></span><span></span></header><div class="center">
+    <div class="bubble">${SES.kind === 'case' ? 'Fall gelöst!' : 'Übungsrunde geschafft!'}<br>${'⭐'.repeat(rating)}${'☆'.repeat(3 - rating)}</div>
+    ${st ? `<div class="stk" style="width:clamp(120px,26vmin,240px);font-size:clamp(70px,16vmin,150px)">${st[1]}</div>` : ''}
+    <div class="stage"><button class="btn" data-a="home">🏠 Weiter</button><button class="btn rose" data-a="album">📒 Album</button></div></div>`);
+  const kind = SES.kind; CUR.say = () => speak([P(kind === 'case' ? 'geschafft' : 'runde'), ...(st ? [P('sticker')] : [])]);
+  setTimeout(CUR.say, 300);
+}
+ACT.album = () => {
+  stopSpeech(); sfx('tap');
+  screen(`<header class="top"><button class="ico" data-a="home">🏠</button><div class="prompt" style="font-size:clamp(22px,4.5vmin,40px)">Meine Sticker</div><span style="width:64px"></span></header>
+    <div class="stickers">${STICKERS.map((s, i) => S.stickers.includes(i) ? `<button class="stk" data-a="stk" data-i="${i}">${s[1]}</button>` : `<div class="stk lock">${s[1]}</div>`).join('')}</div>`);
+  CUR.say = null;
+};
+ACT.stk = b => { const s = STICKERS[+b.dataset.i]; speak([Wd(s[0])]); };
+
+/* ---------- Konfetti ---------- */
+function confetti() {
+  const cv = $('#confetti'), cx = cv.getContext('2d'); cv.width = innerWidth; cv.height = innerHeight;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cols = ['#ff7aa8', '#ffb45e', '#ffe28a', '#7bd88f', '#4fc3f7', '#9b8cff'];
+  const ps = Array.from({ length: 110 }, () => ({ x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .5, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 4, s: 6 + Math.random() * 8, c: pick(cols), r: Math.random() * 6 }));
+  const t0 = performance.now();
+  (function f(t) {
+    cx.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.r += .1; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c; cx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); cx.restore(); });
+    if (t - t0 < 3200) requestAnimationFrame(f); else cx.clearRect(0, 0, cv.width, cv.height);
+  })(t0);
+}
+/* ================= Elternbereich ================= */
+let GATE = null, PTAB = 'letters';
+ACT.parent = () => {
+  stopSpeech(); const a = rnd(6, 9), b = rnd(6, 9); GATE = { ans: String(a * b), v: '', a, b }; gate();
+};
+function gate() {
+  screen(`<header class="top"><button class="ico" data-a="home">🏠</button><span></span><span style="width:64px"></span></header>
+  <div class="center"><div class="prompt">Für Eltern: ${GATE.a} × ${GATE.b} = <b>${GATE.v || '?'}</b></div>
+  <div class="keys">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button class="tile" data-a="gk" data-v="${n}">${n}</button>`).join('')}
+  <button class="tile" data-a="gk" data-v="c">⌫</button><button class="tile" data-a="gk" data-v="0">0</button><button class="tile" data-a="gk" data-v="ok">OK</button></div></div>`);
+}
+ACT.gk = b => {
+  const v = b.dataset.v;
+  if (v === 'c') GATE.v = GATE.v.slice(0, -1);
+  else if (v === 'ok') { if (GATE.v === GATE.ans) return parentArea(); GATE.v = ''; }
+  else if (GATE.v.length < 3) GATE.v += v;
+  gate();
+};
+const TABS = [['letters', 'Buchstaben'], ['numbers', 'Zahlenraum'], ['stats', 'Lernstand'], ['voice', 'Stimme'], ['rec', 'Aufnahmen'], ['save', 'Sicherung']];
+function parentArea(tab) {
+  if (tab) PTAB = tab;
+  screen(`<header class="top"><button class="ico" data-a="home" aria-label="Zurück zum Spiel">🏠</button><div class="prompt" style="font-size:clamp(20px,4vmin,34px)">Elternbereich</div><span style="width:64px"></span></header>
+  <div class="tabs">${TABS.map(t => `<button class="tab ${t[0] === PTAB ? 'on' : ''}" data-a="ptab" data-t="${t[0]}">${t[1]}</button>`).join('')}</div>
+  <div class="par" id="par">${PT[PTAB]()}</div>`);
+}
+ACT.ptab = b => parentArea(b.dataset.t);
+const pct = a => a === null ? 0 : Math.round(a * 100);
+const PT = {
+  letters() {
+    const n = LETTERS.filter(l => S.unlocked[l]).length, nx = ORDER.find(l => !S.unlocked[l]);
+    return `<h2>Buchstaben freischalten</h2>
+    <p>Freigeschaltet: <b>${n} von 26</b>. Neue Buchstaben werden im nächsten Spiel kurz vorgestellt (Bild, Wort, Ton) und danach häufiger geübt. Grün = im Spiel, grau = noch nicht. Der Balken zeigt die Trefferquote.</p>
+    ${nx ? `<p><button class="btn sm" data-a="unlockNext">+ Nächsten Buchstaben freischalten: ${nx}</button></p><p>Der Vorschlag folgt einer üblichen Fibel-Reihenfolge (I L O A M U E R S T N D …). Du kannst jeden Buchstaben auch einzeln antippen.</p>` : '<p>Alle Buchstaben sind freigeschaltet.</p>'}
+    <div class="lgrid">${LETTERS.map(l => { const a = acc(S.lst[l]); return `<button class="lt ${S.unlocked[l] ? 'on' : ''}" data-a="ltog" data-l="${l}" aria-pressed="${!!S.unlocked[l]}">${l}${S.unlocked[l] ? `<small><i style="width:${pct(a)}%"></i></small>` : ''}</button>`; }).join('')}</div>
+    <div class="note">Zu C, Q, V, X und Y gibt es keine Anlaut-Bilder (bei V und Y klingt der Anfangslaut anders, als man ihn schreibt). Diese Buchstaben kommen nur bei „Tippe den Buchstaben“ und „Finde alle“ vor.</div>`;
+  },
+  numbers() {
+    const R = rangeNow();
+    const info = { 10: 'Zahlen von 0 bis 10 (Einstieg: bis 5, dann bis 8, dann bis 10).', 20: 'Zahlen bis 20. Mengen werden in Fünferreihen gezeigt. Reihen gehen auch in Zweierschritten.', 50: 'Zahlen bis 50. Größere Mengen werden als Zehnerstangen und Einzelne gezeigt. Plus und Minus mit Zehnern und Einern, erst ohne, später mit Übergang.', 100: 'Zahlen bis 100. Zehnerstangen, Plus und Minus mit Zehnern und Einern, Reihen in Zweier-, Fünfer- und Zehnerschritten.' };
+    return `<h2>Zahlenraum</h2>
+    <p>Hier stellst du ein, bis zu welcher Zahl das Spiel rechnet, zählt und Zahlen abfragt. Innerhalb des Zahlenraums steigen die Aufgaben von selbst schrittweise an (Stufe 1 bis 3). Buchstaben-Aufgaben ändern sich nicht.</p>
+    <div class="lgrid" style="grid-template-columns:repeat(2,1fr)">${RANGES.map(r => `<button class="lt ${r === R ? 'on' : ''}" data-a="setRange" data-r="${r}" aria-pressed="${r === R}" style="font-size:clamp(20px,4vmin,34px)">bis ${r}</button>`).join('')}</div>
+    <div class="note"><b>Jetzt aktiv: bis ${R}.</b> ${info[R]}<br>Die Stufen bedeuten Zahlen bis ${LVMAX[R][1]}, bis ${LVMAX[R][2]} und bis ${LVMAX[R][3]}.</div>
+    <p>Wenn du den Zahlenraum wechselst, beginnen die Zahlen-Aufgaben wieder bei Stufe 1 des neuen Raums. Du kannst jederzeit zurückschalten. Für eigene Aufnahmen sind alle Zahlen bis 100 im Reiter „Aufnahmen“.</p>`;
+  },
+  stats() {
+    const days = Object.keys(S.days).sort().slice(-7).reverse();
+    return `<h2>Lernstand</h2><p>Gesammelte Sterne: <b>${S.stars}</b> · Sticker: <b>${S.stickers.length} von ${STICKERS.length}</b></p>
+    <h3>Aufgabenarten</h3>${Object.keys(REG).map(k => { const s = S.sk[k]; const a = s ? acc(s) : null; return `<div class="row"><span class="lbl">${REG[k]}</span><span class="st">${s ? `Stufe ${s.lv} von 3 · ${s.c + s.w} Aufgaben` : 'noch nicht geübt'}</span><div class="bar"><i style="width:${pct(a)}%"></i></div></div>`; }).join('')}
+    <p>Stufe 1 bis 3 = drei Teilbereiche des eingestellten Zahlenraums (jetzt bis ${rangeNow()}: bis ${LVMAX[rangeNow()][1]}, bis ${LVMAX[rangeNow()][2]}, bis ${LVMAX[rangeNow()][3]}). Die Stufe steigt nach drei Treffern beim ersten Versuch und sinkt nach zwei Fehlern in Folge.</p>
+    <h3>Buchstaben</h3>${LETTERS.filter(l => S.unlocked[l]).map(l => { const o = S.lst[l]; return `<div class="row"><span class="lbl">${l}</span><span class="st">${o ? o.c + o.w + ' Aufgaben' : 'noch nicht geübt'}</span><div class="bar"><i style="width:${pct(acc(o))}%"></i></div></div>`; }).join('')}
+    <h3>Letzte Tage</h3>${days.length ? days.map(d => `<div class="row"><span class="lbl">${d.split('-').reverse().join('.')}</span><span class="st">${S.days[d].n} Aufgaben · ${Math.max(1, Math.round(S.days[d].ms / 60000))} Min.</span></div>`).join('') : '<p>Noch nichts gespielt.</p>'}`;
+  },
+  voice() {
+    const vs = deVoices();
+    return `<h2>Stimme und Ton</h2>
+    <p><button class="btn sm" data-a="vtest">🔊 Stimme testen</button></p>
+    <p><label for="vsel"><b>Stimme</b></label>${vs.length ? `<select id="vsel" data-c="voice"><option value="">Automatisch (beste Stimme)</option>${vs.map(v => `<option ${v.name === S.set.voice ? 'selected' : ''} value="${esc(v.name)}">${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select>` : '<br>Auf diesem Gerät wurde keine deutsche Stimme gefunden.'}</p>
+    <p><label for="vrate"><b>Sprechtempo</b></label><input id="vrate" type="range" min="0.6" max="1.1" step="0.05" value="${S.set.rate}" data-c="rate" style="width:100%"></p>
+    <p><button class="tab ${S.set.speak ? 'on' : ''}" data-a="tgl" data-k="speak">Vorlesen: ${S.set.speak ? 'an' : 'aus'}</button> <button class="tab ${S.set.sfx ? 'on' : ''}" data-a="tgl" data-k="sfx">Klänge: ${S.set.sfx ? 'an' : 'aus'}</button></p>
+    <div class="note">Tipp fürs iPad: Unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Deutsch kannst du eine „Erweitert“- oder „Premium“-Stimme laden (zum Beispiel Anna oder Helena). Sie klingt deutlich natürlicher. Wähle sie hier danach aus. Im Reiter „Aufnahmen“ kannst du außerdem alles mit deiner eigenen Stimme einsprechen.</div>`;
+  },
+  rec() {
+    const groups = recGroups();
+    return `<h2>Aufnahmen mit deiner Stimme</h2>
+    <p>Jede Zeile ist ein Baustein, den das Spiel vorliest. Was du einsprichst, ersetzt die iPad-Stimme. Alles andere bleibt bei der iPad-Stimme. Aufnahmen bleiben nur auf diesem Gerät.</p>
+    <div class="note warn" id="recmsg">Wenn das Mikrofon hier gesperrt ist: Sprachmemo aufnehmen, in „Dateien“ sichern und mit 📁 laden. Buchstaben-Laute (zum Beispiel „mmm“) gehen nur mit eigener Aufnahme.</div>
+    ${groups.map(g => `<details><summary style="font-weight:800;padding:10px 0;min-height:44px">${esc(g.cat)} (${g.items.length})</summary>${g.items.map(recRow).join('')}</details>`).join('')}`;
+  },
+  save() {
+    const code = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+    return `<h2>Einstellungen und Sicherung</h2>
+    <p><label for="nm"><b>Name im Spiel</b></label><input id="nm" type="text" maxlength="20" value="${esc(S.name)}" data-c="name"></p>
+    <h3>Spielstand sichern</h3><p>Dieser Code enthält Freischaltungen, Sterne, Sticker und Lernstand (ohne Aufnahmen). Kopiere ihn und bewahre ihn in einer Notiz auf.</p>
+    <textarea id="code" readonly>${code}</textarea>
+    <p><button class="btn sm" data-a="copy">Code kopieren</button> <span id="cpmsg"></span></p>
+    <h3>Spielstand laden</h3><textarea id="imp" placeholder="Code hier einfügen"></textarea>
+    <p><button class="btn sm ghost" data-a="import">Laden</button> <span id="immsg"></span></p>
+    <h3>Zurücksetzen</h3><p><button class="btn sm rose" data-a="reset">Alles zurücksetzen</button> <span id="rsmsg"></span></p>`;
+  }
+};
+ACT.setRange = b => { const r = +b.dataset.r; if (!RANGES.includes(r) || r === rangeNow()) return; S.set.range = r; NUMSK.forEach(k => { Object.assign(sk(k), { lv: 1, st: 0, ws: 0 }); }); save(); parentArea('numbers'); };
+ACT.unlockNext = () => { const l = ORDER.find(x => !S.unlocked[x]); if (l) { S.unlocked[l] = 1; save(); } parentArea(); };
+ACT.ltog = b => {
+  const l = b.dataset.l;
+  if (S.unlocked[l]) { if (LETTERS.filter(x => S.unlocked[x]).length > 1) delete S.unlocked[l]; } else S.unlocked[l] = 1;
+  save(); parentArea();
+};
+ACT.vtest = () => speak([T('Hallo! Ich bin dein Koala-Detektiv. Wie viel ist drei plus zwei?')], true);
+ACT.tgl = b => { S.set[b.dataset.k] = !S.set[b.dataset.k]; save(); parentArea(); };
+app.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.c === 'voice') { S.set.voice = t.value; save(); chooseVoice(); }
+  else if (t.dataset.c === 'rate') { S.set.rate = +t.value; save(); }
+  else if (t.dataset.k && t.type === 'file' && t.files[0]) { clipPut(t.dataset.k, t.files[0]); markRow(t.closest('.row'), t.dataset.k); }
+});
+app.addEventListener('input', e => { if (e.target.dataset.c === 'name') { S.name = e.target.value.trim().slice(0, 20) || 'Sternchen'; save(); } });
+ACT.copy = async () => {
+  const ta = $('#code'), m = $('#cpmsg');
+  try { await navigator.clipboard.writeText(ta.value); m.textContent = 'Kopiert.'; } catch (e) { ta.select(); m.textContent = 'Bitte den markierten Code kopieren.'; }
+};
+ACT.import = () => {
+  const m = $('#immsg');
+  try { const o = JSON.parse(decodeURIComponent(escape(atob($('#imp').value.trim())))); if (!o.unlocked) throw 0; S = Object.assign(defaults(), o); S.set = Object.assign(defaults().set, o.set || {}); save(); chooseVoice(); parentArea('save'); $('#immsg').textContent = 'Geladen.'; }
+  catch (e) { m.textContent = 'Der Code ist nicht gültig.'; }
+};
+let resetArmed = false;
+ACT.reset = () => {
+  if (!resetArmed) { resetArmed = true; $('#rsmsg').textContent = 'Nochmal tippen zum Bestätigen.'; setTimeout(() => { resetArmed = false; const m = $('#rsmsg'); if (m) m.textContent = ''; }, 4000); return; }
+  resetArmed = false; S = defaults(); save(); chooseVoice(); parentArea('save'); $('#rsmsg').textContent = 'Zurückgesetzt.';
+};
+
+/* ---- Aufnahme-Studio ---- */
+function recGroups() {
+  const words = []; Object.values(WORDS).forEach(a => a.forEach(w => { if (!words.find(x => x.t === w[0])) words.push({ k: 'w.' + w[0].toLowerCase(), t: w[0] + ' ' + w[1], say: w[0] }); }));
+  STICKERS.forEach(s => { if (!words.find(x => x.say === s[0])) words.push({ k: 'w.' + s[0].toLowerCase(), t: s[0] + ' ' + s[1], say: s[0] }); });
+  const lines = [];
+  CASES.forEach(c => {
+    c.intro.forEach((l, i) => lines.push({ k: `st.${c.id}.in.${i}`, t: l.t, say: l.t }));
+    c.clues.forEach((l, i) => { lines.push({ k: `cl.${c.id}.${i}`, t: l.t, say: l.t }); lines.push({ k: `cs.${c.id}.${i}`, t: '→ ' + l.so, say: l.so }); });
+    c.suspects.filter(s => s.no).forEach(s => lines.push({ k: 'sp.' + c.id + '.' + s.id, t: s.no, say: s.no }));
+    c.outro.forEach((l, i) => lines.push({ k: `st.${c.id}.out.${i}`, t: l.t, say: l.t }));
+  });
+  return [
+    { cat: 'Satzbausteine', items: Object.keys(PHR).map(k => ({ k: 'ph.' + k, t: PHR[k], say: PHR[k] })) },
+    { cat: 'Zahlen 0 bis 10', items: NUMW.slice(0, 11).map((w, i) => ({ k: 'n.' + i, t: `${i} (${w})`, say: w })) },
+    { cat: 'Zahlen 11 bis 20', items: NUMW.slice(11, 21).map((w, i) => ({ k: 'n.' + (i + 11), t: `${i + 11} (${w})`, say: w })) },
+    { cat: 'Zahlen 21 bis 100', items: NUMW.slice(21).map((w, i) => ({ k: 'n.' + (i + 21), t: `${i + 21} (${w})`, say: w })) },
+    { cat: 'Formen', items: SHAPES.map(s => ({ k: 'fo.' + s[0].toLowerCase(), t: `Tippe auf ${s[2]} ${s[0]}. ${s[1]}`, say: `Tippe auf ${s[2]} ${s[0]}.` })).concat(SHAPES.map(s => ({ k: 'w.' + s[0].toLowerCase(), t: s[0] + ' ' + s[1], say: s[0] }))) },
+    { cat: 'Buchstaben-Namen', items: LETTERS.map(L => ({ k: 'l.' + L, t: L, say: LSAY[L] })) },
+    { cat: 'Buchstaben-Laute (nur eigene Aufnahme)', items: LETTERS.map(L => ({ k: 's.' + L, t: 'Laut ' + L, say: '' })) },
+    { cat: 'Wörter und Tiere', items: words },
+    { cat: 'Geschichten und Hinweise', items: lines }
+  ];
+}
+function recRow(it) {
+  const has = CLIPS.has(it.k);
+  return `<div class="row" data-k="${esc(it.k)}"><span class="lbl">${esc(it.t)}</span><span class="st">${has ? 'Eigene Aufnahme ✓' : it.say ? 'iPad-Stimme' : 'keine'}</span>
+  <button class="mini" data-a="rplay" data-k="${esc(it.k)}" data-s="${esc(it.say)}" aria-label="Anhören">▶</button>
+  <button class="mini" data-a="rrec" data-k="${esc(it.k)}" aria-label="Aufnehmen">●</button>
+  <button class="mini" data-a="rdel" data-k="${esc(it.k)}" data-s="${esc(it.say)}" aria-label="Aufnahme löschen">🗑</button>
+  <label class="mini" style="display:grid;place-items:center;cursor:pointer" aria-label="Datei laden">📁<input type="file" accept="audio/*" hidden data-k="${esc(it.k)}"></label></div>`;
+}
+function markRow(row, k) { const st = $('.st', row); if (st) st.textContent = CLIPS.has(k) ? 'Eigene Aufnahme ✓' : (row.querySelector('[data-s]').dataset.s ? 'iPad-Stimme' : 'keine'); }
+ACT.rplay = b => speak([{ k: b.dataset.k, t: b.dataset.s }], true);
+ACT.rdel = b => { clipDel(b.dataset.k); markRow(b.closest('.row'), b.dataset.k); };
+let REC = null;
+ACT.rrec = async b => {
+  const k = b.dataset.k, row = b.closest('.row'), st = $('.st', row);
+  if (REC) { if (REC.mr.state !== 'inactive') REC.mr.stop(); return; }
+  try {
+    stopSpeech();
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mime = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm'].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
+    const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : {}), chunks = [];
+    mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    mr.onstop = () => {
+      stream.getTracks().forEach(t => t.stop()); if (REC) clearTimeout(REC.to); REC = null; b.classList.remove('rec'); b.textContent = '●';
+      const blob = new Blob(chunks, { type: mr.mimeType || mime || 'audio/mp4' });
+      if (blob.size > 500) clipPut(k, blob); markRow(row, k);
+    };
+    REC = { mr, to: setTimeout(() => { if (mr.state !== 'inactive') mr.stop(); }, 9000) };
+    mr.start(); b.classList.add('rec'); b.textContent = '■'; st.textContent = 'Aufnahme läuft …';
+  } catch (e) {
+    st.textContent = 'Mikrofon gesperrt'; const m = $('#recmsg'); if (m) m.textContent = 'Das Mikrofon ist hier nicht erlaubt. Nimm eine Sprachmemo auf, sichere sie in „Dateien“ und lade sie mit 📁. In der fertigen App auf dem iPad fragt Safari einmal nach der Erlaubnis.';
+  }
+};
+
+/* ================= Start ================= */
+loadState();
+idbOpen().then(idbAll);
+startScreen();
+window.__game = { S: () => S, SES: () => SES, ACT, CLIPS };
+
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => { /* ohne Offline-Funktion weiterspielen */ }));
+</script>
+</body>
+</html>
